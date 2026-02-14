@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:rentme/my_vehicles.dart';
 
-class CreatePage extends StatefulWidget {
-  const CreatePage({super.key});
+class EditInfos extends StatefulWidget {
+  const EditInfos({super.key});
 
   @override
-  State<CreatePage> createState() => _CreatePageState();
+  State<EditInfos> createState() => _EditInfosState();
 }
 
-class _CreatePageState extends State<CreatePage> {
+class _EditInfosState extends State<EditInfos> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,30 +19,38 @@ class _CreatePageState extends State<CreatePage> {
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Column(
             children: [
-              Center(
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    CircleAvatar(
-                      radius: 70,
-                      backgroundImage: AssetImage('images/user logo.png'),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CircleAvatar(
+                    radius: 70,
+                    backgroundImage: AssetImage('images/user logo.png'),
+                  ),
+                  Positioned(
+                    bottom: -5,
+                    right: -5,
+                    child: IconButton.filled(
+                      onPressed: () {},
+                      icon: Icon(Iconsax.edit),
                     ),
-                    Positioned(
-                      bottom: -5,
-                      right: -5,
-                      child: IconButton.filled(
-                        onPressed: () {},
-                        icon: Icon(Iconsax.camera),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => MyVehicles()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(minimumSize: Size(150, 48)),
+                child: Text('MY VEHICLES'),
               ),
               SizedBox(height: 40),
               TextFormField(
                 decoration: InputDecoration(
                   hintText: "Full Name",
-                  
                   border: UnderlineInputBorder(),
                 ),
               ),
@@ -84,16 +92,9 @@ class _CreatePageState extends State<CreatePage> {
               SizedBox(height: 30),
 
               ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MyVehicles(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(minimumSize: Size(250, 48)),
-                child: Text('SAVE AND CONTINUE'),
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(minimumSize: Size(150, 48)),
+                child: Text('SAVE'),
               ),
             ],
           ),

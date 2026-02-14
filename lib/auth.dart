@@ -19,6 +19,7 @@ class _AuthState extends State<Auth> {
             Image.asset('images/image1.jpg', height: 200),
             TextFormField(
               decoration: InputDecoration(
+                labelText: 'Email',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -27,6 +28,7 @@ class _AuthState extends State<Auth> {
             SizedBox(height: 20),
             TextFormField(
               decoration: InputDecoration(
+                labelText: 'Password',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
