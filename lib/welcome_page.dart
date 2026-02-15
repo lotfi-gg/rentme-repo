@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:rentme/auth.dart';
-import 'package:rentme/home_page.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:rentme/add_vehicle.dart';
 
 class PublicProfile extends StatefulWidget {
   const PublicProfile({super.key});

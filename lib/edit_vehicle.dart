@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
 
 class EditVehicle extends StatefulWidget {
   const EditVehicle({super.key});

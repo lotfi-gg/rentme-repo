@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "896469831955",
+    "project_id": "rent-me-7d58b",
+    "storage_bucket": "rent-me-7d58b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:896469831955:android:ad2d3614877b85e6c88ae6",
+        "android_client_info": {
+          "package_name": "com.example.rentme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "896469831955-1itsvs17g9b84hcag1qba2phtvka332a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD4LjzB8pBqaGKSVTMKLyJ0M6wXttyynx8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "896469831955-1itsvs17g9b84hcag1qba2phtvka332a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

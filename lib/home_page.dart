@@ -1,7 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:rentme/create_page.dart';
 import 'package:rentme/edit_infos.dart';
-import 'package:rentme/my_vehicles.dart';
 import 'package:rentme/public_profile.dart';
 
 class HomePage extends StatefulWidget {
@@ -157,6 +160,20 @@ class _HomePageState extends State<HomePage> {
       ),
       appBar: AppBar(
         actions: [
+          SizedBox(width: 12),
+          IconButton(
+            onPressed: () async {
+              GoogleSignIn googleSignIn = GoogleSignIn();
+              googleSignIn.disconnect();
+              await FirebaseAuth.instance.signOut();
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('auth', (route) => false);
+            },
+            icon: Icon(Iconsax.logout),
+            iconSize: 25,
+          ),
+          Spacer(),
           InkWell(
             borderRadius: BorderRadius.circular(50),
             onTap: () {
