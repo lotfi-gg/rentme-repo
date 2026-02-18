@@ -1,10 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:rentme/create_page.dart';
-import 'package:rentme/edit_infos.dart';
+import 'package:rentme/my_profile.dart';
 import 'package:rentme/public_profile.dart';
 
 class HomePage extends StatefulWidget {
@@ -179,7 +178,7 @@ class _HomePageState extends State<HomePage> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => EditInfos()),
+                MaterialPageRoute(builder: (context) => MyProfile()),
               );
             },
             child: CircleAvatar(

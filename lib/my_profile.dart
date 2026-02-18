@@ -1,15 +1,42 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:rentme/firebase/fire_storage.dart';
+import 'package:rentme/models/user_model.dart';
 import 'package:rentme/my_vehicles.dart';
 
-class EditInfos extends StatefulWidget {
-  const EditInfos({super.key});
+class MyProfile extends StatefulWidget {
+  const MyProfile({super.key});
 
   @override
-  State<EditInfos> createState() => _EditInfosState();
+  State<MyProfile> createState() => _MyProfileState();
 }
 
-class _EditInfosState extends State<EditInfos> {
+class _MyProfileState extends State<MyProfile> {
+  String _img = '';
+  ChatUser? me;
+  
+  @override
+  void initState() {
+    super.initState();
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get()
+        .then((doc) {
+          if (doc.exists) {
+            setState(() {
+              me = ChatUser.fromJson(doc.data()!);
+            });
+          }
+        });
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,13 +51,33 @@ class _EditInfosState extends State<EditInfos> {
                 children: [
                   CircleAvatar(
                     radius: 70,
-                    backgroundImage: AssetImage('images/user logo.png'),
+                    backgroundImage: _img.isNotEmpty
+                        ? FileImage(File(_img))
+                        : (me?.img != null && me!.img!.isNotEmpty
+                              ? NetworkImage(me!.img!)
+                              : AssetImage('images/user logo.png')
+                                    as ImageProvider),
                   ),
                   Positioned(
                     bottom: -5,
                     right: -5,
                     child: IconButton.filled(
-                      onPressed: () {},
+                      onPressed: () async {
+                        ImagePicker imagePicker = ImagePicker();
+                        XFile? image = await imagePicker.pickImage(
+                          source: ImageSource.gallery,
+                        );
+                        if (image != null) {
+                          if (mounted) {
+                            setState(() {
+                              _img = image.path;
+                            });
+                          }
+                          FireStorage().updateprofilepicture(
+                            file: File(image.path),
+                          );
+                        }
+                      },
                       icon: Icon(Iconsax.edit),
                     ),
                   ),

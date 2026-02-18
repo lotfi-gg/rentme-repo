@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:rentme/auth.dart';
 import 'package:rentme/home_page.dart';
+import 'package:rentme/my_profile.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +32,7 @@ class _RentMeState extends State<RentMe> {
       ),
       routes: {"homepage": (context) => HomePage(),
         "auth": (context) => Auth(),
+        "myprofile": (context) => MyProfile(),
       },
     );
   }
