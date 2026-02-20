@@ -24,8 +24,8 @@ class _AuthState extends State<Auth> {
 
     // Create a new credential
     final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
     );
     // Once signed in, return the UserCredential
     await FirebaseAuth.instance.signInWithCredential(credential);

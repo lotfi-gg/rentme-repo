@@ -1,10 +1,10 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:rentme/firebase/fire_auth.dart';
 import 'package:rentme/firebase/fire_storage.dart';
 import 'package:rentme/models/user_model.dart';
 import 'package:rentme/my_vehicles.dart';
@@ -17,12 +17,22 @@ class MyProfile extends StatefulWidget {
 }
 
 class _MyProfileState extends State<MyProfile> {
+  GlobalKey<FormState> formstate = GlobalKey<FormState>();
+
+  TextEditingController username = TextEditingController();
+  TextEditingController phonenumber = TextEditingController();
+  TextEditingController agencyname = TextEditingController();
+  TextEditingController country = TextEditingController();
+  TextEditingController province = TextEditingController();
+  TextEditingController townhall = TextEditingController();
   String _img = '';
   ChatUser? me;
-  
+  bool readonly = true;
+
   @override
   void initState() {
     super.initState();
+
     FirebaseFirestore.instance
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -31,119 +41,222 @@ class _MyProfileState extends State<MyProfile> {
           if (doc.exists) {
             setState(() {
               me = ChatUser.fromJson(doc.data()!);
+              username.text = me!.username!;
+              phonenumber.text = me!.phonenumber!;
+              agencyname.text = me!.agencyname!;
+              country.text = me!.country!;
+              province.text = me!.province!;
+              townhall.text = me!.townhall!;
+              
             });
           }
         });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 150,
+            child: FloatingActionButton.extended(
+              heroTag: "EDITBtn",
+              onPressed: () {
+                setState(() {
+                  readonly = false;
+                });
+              },
+              icon: Icon(Icons.edit),
+              label: Text('EDIT'),
+            ),
+          ),
+          SizedBox(width: MediaQuery.of(context).size.width * 0.2),
+          SizedBox(
+            width: 150,
+            child: FloatingActionButton.extended(
+              heroTag: "SAVEBtn",
+              onPressed: () async {
+                if (formstate.currentState!.validate()) {
+                  setState(() {
+                    readonly = true;
+                  });
+                  try {
+                    await FirebaseAuth.instance.currentUser!
+                        .updateDisplayName(username.text)
+                        .then(
+                          (value) => FireAuth.createUser(
+                            phonenumber.text,
+                            agencyname.text,
+                            country.text,
+                            province.text,
+                            townhall.text,
+                          ),
+                        );
+
+                    print('user updated -----------');
+                  } catch (e) {
+                    print('error while creating page ======> $e');
+                  }
+                } else {
+                  setState(() {
+                    readonly = false;
+                  });
+                }
+              },
+              icon: Icon(Icons.check),
+              label: Text('SAVE'),
+            ),
+          ),
+        ],
+      ),
       appBar: AppBar(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
-          child: Column(
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  CircleAvatar(
-                    radius: 70,
-                    backgroundImage: _img.isNotEmpty
-                        ? FileImage(File(_img))
-                        : (me?.img != null && me!.img!.isNotEmpty
-                              ? NetworkImage(me!.img!)
-                              : AssetImage('images/user logo.png')
-                                    as ImageProvider),
-                  ),
-                  Positioned(
-                    bottom: -5,
-                    right: -5,
-                    child: IconButton.filled(
-                      onPressed: () async {
-                        ImagePicker imagePicker = ImagePicker();
-                        XFile? image = await imagePicker.pickImage(
-                          source: ImageSource.gallery,
-                        );
-                        if (image != null) {
-                          if (mounted) {
+          child: Form(
+            key: formstate,
+            child: Column(
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    CircleAvatar(
+                      radius: 70,
+                      backgroundImage: _img.isNotEmpty
+                          ? FileImage(File(_img))
+                          : (me?.img != null && me!.img!.isNotEmpty
+                                ? NetworkImage(me!.img!)
+                                : const AssetImage('images/user logo.png')),
+                    ),
+                    Positioned(
+                      bottom: -5,
+                      right: -5,
+                      child: IconButton.filled(
+                        onPressed: () async {
+                          ImagePicker imagePicker = ImagePicker();
+                          XFile? image = await imagePicker.pickImage(
+                            source: ImageSource.gallery,
+                          );
+                          if (image != null) {
                             setState(() {
                               _img = image.path;
                             });
+                            FireStorage().updateprofilepicture(
+                              file: File(image.path),
+                            );
                           }
-                          FireStorage().updateprofilepicture(
-                            file: File(image.path),
-                          );
-                        }
-                      },
-                      icon: Icon(Iconsax.edit),
+                        },
+                        icon: Icon(Iconsax.edit),
+                      ),
                     ),
+                  ],
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MyVehicles()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(minimumSize: Size(150, 48)),
+                  child: Text('MY VEHICLES'),
+                ),
+                SizedBox(height: 40),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                  },
+                  readOnly: readonly,
+                  controller: username,
+                  decoration: InputDecoration(
+                    labelText: 'Full Name',
+                    border: UnderlineInputBorder(),
                   ),
-                ],
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MyVehicles()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(minimumSize: Size(150, 48)),
-                child: Text('MY VEHICLES'),
-              ),
-              SizedBox(height: 40),
-              TextFormField(
-                decoration: InputDecoration(
-                  hintText: "Full Name",
-                  border: UnderlineInputBorder(),
                 ),
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                decoration: InputDecoration(
-                  hintText: "Phone Number",
-                  border: UnderlineInputBorder(),
+                SizedBox(height: 30),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                  },
+                  readOnly: readonly,
+                  controller: phonenumber,
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                    border: UnderlineInputBorder(),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                decoration: InputDecoration(
-                  hintText: "Agency Name",
-                  border: UnderlineInputBorder(),
+                SizedBox(height: 30),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                  },
+                  readOnly: readonly,
+                  controller: agencyname,
+                  decoration: InputDecoration(
+                    labelText: 'Agency Name',
+                    border: UnderlineInputBorder(),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                decoration: InputDecoration(
-                  hintText: "Country",
-                  border: UnderlineInputBorder(),
+                SizedBox(height: 30),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                  },
+                  readOnly: readonly,
+                  controller: country,
+                  decoration: InputDecoration(
+                    labelText: 'Country',
+                    border: UnderlineInputBorder(),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                decoration: InputDecoration(
-                  hintText: "Province",
-                  border: UnderlineInputBorder(),
+                SizedBox(height: 30),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                  },
+                  readOnly: readonly,
+                  controller: province,
+                  decoration: InputDecoration(
+                    labelText: 'Province',
+                    border: UnderlineInputBorder(),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                decoration: InputDecoration(
-                  hintText: "Town Hall",
-                  border: UnderlineInputBorder(),
+                SizedBox(height: 30),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                  },
+                  readOnly: readonly,
+                  controller: townhall,
+                  decoration: InputDecoration(
+                    labelText: 'Town Hall',
+                    border: UnderlineInputBorder(),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(minimumSize: Size(150, 48)),
-                child: Text('SAVE'),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

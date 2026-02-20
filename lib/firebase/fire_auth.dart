@@ -6,25 +6,31 @@ class FireAuth {
   static FirebaseAuth auth = FirebaseAuth.instance;
   static FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
 
-  static Future createUser(int phonenumber, String agencyname, String country,
-  String province, String townhall,
+  static Future createUser(
+    String phonenumber,
+    String agencyname,
+    String country,
+    String province,
+    String townhall,
   ) async {
     User user = auth.currentUser!;
+    final doc = await firebaseFirestore.collection('users').doc(user.uid).get();
+    String currentImg = doc.data()?['img'] ?? '';
     ChatUser chatUser = ChatUser(
-      id: user.uid ,
+      id: user.uid,
       username: user.displayName ?? '',
       email: user.email ?? '',
       phonenumber: phonenumber,
       agencyname: agencyname,
-      country: country ,
+      country: country,
       province: province,
       townhall: townhall,
-      img: '',
+      img: currentImg,
     );
 
     await firebaseFirestore
         .collection('users')
         .doc(user.uid)
-        .set(chatUser.toJson());
+        .set(chatUser.toJson(), SetOptions(merge: true));
   }
 }

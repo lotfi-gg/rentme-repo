@@ -2,7 +2,7 @@ class ChatUser {
   String? id;
   String? email;
   String? username;
-  int? phonenumber;
+  String? phonenumber;
   String? agencyname;
   String? country;
   String? province;

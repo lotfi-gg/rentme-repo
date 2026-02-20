@@ -16,6 +16,7 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePageState extends State<CreatePage> {
+  GlobalKey<FormState> formstate = GlobalKey<FormState>();
   TextEditingController username = TextEditingController();
   TextEditingController phonenumber = TextEditingController();
   TextEditingController agencyname = TextEditingController();
@@ -30,83 +31,129 @@ class _CreatePageState extends State<CreatePage> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
-          child: Column(
-            children: [
-              SizedBox(height: 40),
-              TextFormField(
-                controller: username,
-                decoration: InputDecoration(
-                  hintText: "Full Name",
+          child: Form(
+            key: formstate,
+            child: Column(
+              children: [
+                SizedBox(height: 40),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                    
+                  },
+                  controller: username,
+                  decoration: InputDecoration(
+                    hintText: "Full Name",
 
-                  border: UnderlineInputBorder(),
+                    border: UnderlineInputBorder(),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                controller: phonenumber,
-                decoration: InputDecoration(
-                  hintText: "Psone Number",
-                  border: UnderlineInputBorder(),
+                SizedBox(height: 30),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                  },
+                  controller: phonenumber,
+                  decoration: InputDecoration(
+                    hintText: "Phone Number",
+                    border: UnderlineInputBorder(),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                controller: agencyname,
-                decoration: InputDecoration(
-                  hintText: "Agency Name",
-                  border: UnderlineInputBorder(),
+                SizedBox(height: 30),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                  },
+                  controller: agencyname,
+                  decoration: InputDecoration(
+                    hintText: "Agency Name",
+                    border: UnderlineInputBorder(),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                controller: country,
-                decoration: InputDecoration(
-                  hintText: "Country",
-                  border: UnderlineInputBorder(),
+                SizedBox(height: 30),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                  },
+                  controller: country,
+                  decoration: InputDecoration(
+                    hintText: "Country",
+                    border: UnderlineInputBorder(),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                controller: province,
-                decoration: InputDecoration(
-                  hintText: "Province",
-                  border: UnderlineInputBorder(),
+                SizedBox(height: 30),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                  
+                  },
+                  controller: province,
+                  decoration: InputDecoration(
+                    hintText: "Province",
+                    border: UnderlineInputBorder(),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                controller: townhall,
-                decoration: InputDecoration(
-                  hintText: "Town Hall",
-                  border: UnderlineInputBorder(),
+                SizedBox(height: 30),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "field required !";
+                    }
+                    return null;
+                  },
+                  controller: townhall,
+                  decoration: InputDecoration(
+                    hintText: "Town Hall",
+                    border: UnderlineInputBorder(),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
+                SizedBox(height: 30),
 
-              ElevatedButton(
-                onPressed: () async {
-                  if (username.text.isNotEmpty) {
-                    await FirebaseAuth.instance.currentUser!
-                        .updateDisplayName(username.text)
-                        .then(
-                          (value) => FireAuth.createUser(
-                            int.parse(phonenumber.text),
-                            agencyname.text,
-                            country.text,
-                            province.text,
-                            townhall.text,
-                          ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (formstate.currentState!.validate()) {
+                      try {
+                        await FirebaseAuth.instance.currentUser!
+                            .updateDisplayName(username.text)
+                            .then(
+                              (value) => FireAuth.createUser(
+                                phonenumber.text,
+                                agencyname.text,
+                                country.text,
+                                province.text,
+                                townhall.text,
+                              ),
+                            );
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          'myprofile',
+                          (route) => false,
                         );
-                    Navigator.of(
-                      context,
-                    ).pushNamedAndRemoveUntil('myprofile', (route) => false);
-                    print('user created -----------');
-                  }
-                },
-                style: ElevatedButton.styleFrom(minimumSize: Size(250, 48)),
-                child: Text('SAVE AND CONTINUE'),
-              ),
-            ],
+                        print('user created -----------');
+                      } catch (e) {
+                        print('error while creating page ======> $e');
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(minimumSize: Size(250, 48)),
+                  child: Text('SAVE AND CONTINUE'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
