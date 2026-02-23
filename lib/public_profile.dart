@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:rentme/models/user_model.dart';
 
 class PublicProfile extends StatefulWidget {
-  const PublicProfile({super.key});
+  final ChatUser user;
+  const PublicProfile({super.key, required this.user});
 
   @override
   State<PublicProfile> createState() => _PublicProfileState();
@@ -110,7 +112,7 @@ class _PublicProfileState extends State<PublicProfile> {
           ),
         ],
       ),
-      appBar: AppBar(),
+      appBar: AppBar(title: Text(widget.user!.agencyname!)),
       body: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,

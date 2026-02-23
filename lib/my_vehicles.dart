@@ -31,7 +31,6 @@ class _MyVehiclesState extends State<MyVehicles> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          CircleAvatar(radius: 70, child: Image.asset('images/user logo.png')),
           SizedBox(height: 20),
           Expanded(
             child: ListView.builder(

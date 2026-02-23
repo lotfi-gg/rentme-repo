@@ -6,6 +6,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rentme/firebase/fire_auth.dart';
 import 'package:rentme/firebase/fire_storage.dart';
+import 'package:rentme/home_page.dart';
 import 'package:rentme/models/user_model.dart';
 import 'package:rentme/my_vehicles.dart';
 
@@ -17,6 +18,19 @@ class MyProfile extends StatefulWidget {
 }
 
 class _MyProfileState extends State<MyProfile> {
+  Future<void> _reloadUser() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get();
+
+    if (doc.exists) {
+      setState(() {
+        me = ChatUser.fromJson(doc.data()!);
+      });
+    }
+  }
+
   GlobalKey<FormState> formstate = GlobalKey<FormState>();
 
   TextEditingController username = TextEditingController();
@@ -47,7 +61,6 @@ class _MyProfileState extends State<MyProfile> {
               country.text = me!.country!;
               province.text = me!.province!;
               townhall.text = me!.townhall!;
-              
             });
           }
         });
@@ -93,6 +106,7 @@ class _MyProfileState extends State<MyProfile> {
                             country.text,
                             province.text,
                             townhall.text,
+                            true,
                           ),
                         );
 
@@ -112,7 +126,22 @@ class _MyProfileState extends State<MyProfile> {
           ),
         ],
       ),
-      appBar: AppBar(),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            ).then((result) {
+              if (result == true) {
+                _reloadUser(); // refresh Firestore data
+              }
+            });
+          },
+        ),
+      ),
+
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),

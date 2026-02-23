@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:rentme/create_page.dart';
+import 'package:rentme/models/user_model.dart';
 import 'package:rentme/my_profile.dart';
 import 'package:rentme/public_profile.dart';
 
@@ -14,6 +16,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  ChatUser? me;
+  @override
+  void initState() {
+    super.initState();
+
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get()
+        .then((doc) {
+          if (doc.exists) {
+            setState(() {
+              me = ChatUser.fromJson(doc.data()!);
+            });
+          }
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,20 +41,24 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 150,
-            child: FloatingActionButton.extended(
-              heroTag: "createBtn",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CreatePage()),
-                );
-              },
-              icon: Icon(Icons.car_rental_sharp),
-              label: Text('CREATE'),
-            ),
-          ),
+          (me?.isFirstTime ?? true)
+              ? SizedBox(
+                  width: 150,
+                  child: FloatingActionButton.extended(
+                    heroTag: "createBtn",
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CreatePage(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.car_rental_sharp),
+                    label: const Text('CREATE'),
+                  ),
+                )
+              : const SizedBox(width: 150),
           SizedBox(width: MediaQuery.of(context).size.width * 0.2),
           SizedBox(
             width: 150,
@@ -162,18 +185,20 @@ class _HomePageState extends State<HomePage> {
         actions: [
           SizedBox(width: 12),
           IconButton(
-            onPressed: () async {
-              GoogleSignIn googleSignIn = GoogleSignIn();
-              googleSignIn.disconnect();
-              await FirebaseAuth.instance.signOut();
-              Navigator.of(
-                context,
-              ).pushNamedAndRemoveUntil('auth', (route) => false);
-            },
-            icon: Icon(Iconsax.logout),
-            iconSize: 25,
-          ),
+                  onPressed: () async {
+                    GoogleSignIn googleSignIn = GoogleSignIn();
+                    googleSignIn.signOut();
+                    await FirebaseAuth.instance.signOut();
+                    Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil('auth', (route) => false);
+                    print('user signed out');
+                  },
+                  icon: Icon(Iconsax.logout),
+                  iconSize: 25,
+                ),
           Spacer(),
+          (me?.isFirstTime ?? true) ? SizedBox() :
           InkWell(
             borderRadius: BorderRadius.circular(50),
             onTap: () {
@@ -190,56 +215,89 @@ class _HomePageState extends State<HomePage> {
           SizedBox(width: 12),
         ],
       ),
-      body: ListView.builder(
-        itemCount: 10,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: SizedBox(
-              height: 130,
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                elevation: 2,
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(25),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => PublicProfile()),
-                    );
-                  },
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        child: Image.asset(
-                          'images/user logo.png',
-                          height: double.infinity,
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('users').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text("No users found"));
+          }
+          final currentUid = FirebaseAuth.instance.currentUser!.uid;
+          final users = snapshot.data!.docs
+              .where((doc) => doc.id != currentUid)
+              .map(
+                (doc) => ChatUser.fromJson(doc.data() as Map<String, dynamic>),
+              )
+              .toList();
 
-                          fit: BoxFit.cover,
-                        ),
+          return ListView.builder(
+            itemCount: users.length,
+            itemBuilder: (context, index) {
+              final user = users[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: SizedBox(
+                  height: 130,
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    elevation: 2,
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(25),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PublicProfile(user: user),
+                          ),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(25),
+                              bottomLeft: Radius.circular(25),
+                            ),
+                            child: user.img != null && user.img!.isNotEmpty
+                                ? Image.network(
+                                    user.img!,
+                                    height: double.infinity,
+                                    width: 120,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.asset(
+                                    'images/user logo.png',
+                                    height: double.infinity,
+                                    width: 120,
+                                    fit: BoxFit.cover,
+                                  ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("${user.province} / ${user.townhall}"),
+                                const SizedBox(height: 8),
+                                Text(user.agencyname ?? "No agency"),
+                                const SizedBox(height: 8),
+                                Text("Available Vehicles: 12345"),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text('Province / Town Hall'),
-                            SizedBox(height: 8),
-                            Text('Agency Name'),
-                            SizedBox(height: 8),
-                            Text('Avaiable Vehicles'),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           );
         },
       ),
