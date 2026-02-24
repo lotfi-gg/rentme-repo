@@ -43,37 +43,29 @@ class FireCar {
   static FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
 
   /// Create a new car under the current user's "cars" subcollection
-  static Future createCar({
-    required String vehiclefullname,
-    required String year,
-    required String transmission,
-     String status = 'Avaiable',
-    required String price,
-  }) async {
+  static Future createCar(
+    String vehicleId,
+    String vehiclefullname,
+    String year,
+    String transmission,
+    String price,
+    String img,
+  ) async {
     User user = auth.currentUser!;
-
-    // Generate a unique ID for the car
-    String carId = firebaseFirestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('cars')
-        .doc()
-        .id;
-
     CarInfo carInfo = CarInfo(
-      id: carId,
+      id: vehicleId,
       vehiclefullname: vehiclefullname,
       year: year,
       transmission: transmission,
       price: price,
-      status: status,
+      img: img,
     );
 
     await firebaseFirestore
         .collection('users')
         .doc(user.uid)
         .collection('cars')
-        .doc(carId)
+        .doc(vehicleId)
         .set(carInfo.toJson());
   }
 }

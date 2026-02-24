@@ -185,33 +185,34 @@ class _HomePageState extends State<HomePage> {
         actions: [
           SizedBox(width: 12),
           IconButton(
-                  onPressed: () async {
-                    GoogleSignIn googleSignIn = GoogleSignIn();
-                    googleSignIn.signOut();
-                    await FirebaseAuth.instance.signOut();
-                    Navigator.of(
-                      context,
-                    ).pushNamedAndRemoveUntil('auth', (route) => false);
-                    print('user signed out');
-                  },
-                  icon: Icon(Iconsax.logout),
-                  iconSize: 25,
-                ),
-          Spacer(),
-          (me?.isFirstTime ?? true) ? SizedBox() :
-          InkWell(
-            borderRadius: BorderRadius.circular(50),
-            onTap: () {
-              Navigator.push(
+            onPressed: () async {
+              GoogleSignIn googleSignIn = GoogleSignIn();
+              googleSignIn.signOut();
+              await FirebaseAuth.instance.signOut();
+              Navigator.of(
                 context,
-                MaterialPageRoute(builder: (context) => MyProfile()),
-              );
+              ).pushNamedAndRemoveUntil('auth', (route) => false);
+              print('user signed out');
             },
-            child: CircleAvatar(
-              radius: 23,
-              backgroundImage: AssetImage('images/user logo.png'),
-            ),
+            icon: Icon(Iconsax.logout),
+            iconSize: 25,
           ),
+          Spacer(),
+          (me?.isFirstTime ?? true)
+              ? SizedBox()
+              : InkWell(
+                  borderRadius: BorderRadius.circular(50),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MyProfile()),
+                    );
+                  },
+                  child: CircleAvatar(
+                    radius: 23,
+                    backgroundImage: AssetImage('images/user logo.png'),
+                  ),
+                ),
           SizedBox(width: 12),
         ],
       ),
@@ -283,10 +284,11 @@ class _HomePageState extends State<HomePage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("${user.province} / ${user.townhall}"),
-                                const SizedBox(height: 8),
                                 Text(user.agencyname ?? "No agency"),
                                 const SizedBox(height: 8),
+                                Text("${user.province} / ${user.townhall}"),
+                                const SizedBox(height: 8),
+
                                 Text("Available Vehicles: 12345"),
                               ],
                             ),

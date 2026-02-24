@@ -1,5 +1,9 @@
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:rentme/firebase/fire_auth.dart';
+import 'package:rentme/my_vehicles.dart';
 
 class AddVehicle extends StatefulWidget {
   const AddVehicle({super.key});
@@ -14,6 +18,29 @@ class _AddVehicleState extends State<AddVehicle> {
   TextEditingController year = TextEditingController();
   TextEditingController transmission = TextEditingController();
   TextEditingController price = TextEditingController();
+  TextEditingController status = TextEditingController();
+
+  File? _selectedImage;
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<String> _uploadImage(File imageFile, String carId) async {
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('cars')
+        .child('$carId.jpg');
+
+    await ref.putFile(imageFile); // upload the file
+    return await ref.getDownloadURL(); // return the hosted URL
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +58,30 @@ class _AddVehicleState extends State<AddVehicle> {
                     height: 300,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      color: Colors.red,
-                      image: DecorationImage(
-                        image: AssetImage("images/image1.jpg"),
-                        fit: BoxFit.cover,
-                      ),
+                      color: Colors.grey.shade200,
+                      image: _selectedImage != null
+                          ? DecorationImage(
+                              image: FileImage(
+                                _selectedImage!,
+                              ), // show picked image
+                              fit: BoxFit.cover,
+                            )
+                          : DecorationImage(
+                              image: AssetImage(
+                                "images/image1.jpg",
+                              ), // fallback placeholder
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
+
                   SizedBox(height: 10),
-                  ElevatedButton(onPressed: () {}, child: Text('ADD PHOTOS')),
+                  ElevatedButton(
+                    onPressed: () {
+                      _pickImage();
+                    },
+                    child: Text('ADD PHOTO'),
+                  ),
                   SizedBox(height: 40),
                   TextFormField(
                     controller: vehiclefullname,
@@ -108,21 +150,55 @@ class _AddVehicleState extends State<AddVehicle> {
                   ElevatedButton(
                     onPressed: () async {
                       if (formstate.currentState!.validate()) {
-                        try {
-                          await FireCar.createCar(
-                            vehiclefullname: vehiclefullname.text,
-                            year:year.text,
-                            transmission: transmission.text,
-                            price: price.text,
+                        if (_selectedImage == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Please add a photo before creating the car",
+                              ),
+                            ),
                           );
-                          Navigator.of(context).pushNamed('myprofile');
-                          print('user created -----------');
+                          return;
+                        }
+                        try {
+                          final user = FireCar.auth.currentUser!;
+                          final carId = FireCar.firebaseFirestore
+                              .collection('users')
+                              .doc(user.uid)
+                              .collection('cars')
+                              .doc()
+                              .id;
+
+                          String imgUrl = '';
+                          if (_selectedImage != null) {
+                            // upload image first
+                            imgUrl = await _uploadImage(_selectedImage!, carId);
+                          }
+
+                          // only create car if upload succeeded
+                          await FireCar.createCar(
+                            carId,
+                            vehiclefullname.text,
+                            year.text,
+                            transmission.text,
+                           
+                            price.text,
+                            imgUrl, // pass the URL string
+                          );
+
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyVehicles(),
+                            ),
+                          );
+
+                          print('Car created with image -----------');
                         } catch (e) {
-                          print('error while creating page ======> $e');
+                          print('Error while creating car ======> $e');
                         }
                       }
                     },
-                    style: ElevatedButton.styleFrom(minimumSize: Size(250, 48)),
                     child: Text('ADD'),
                   ),
                 ],

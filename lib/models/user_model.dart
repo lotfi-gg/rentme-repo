@@ -19,7 +19,7 @@ class ChatUser {
     required this.province,
     required this.townhall,
     required this.img,
-     this.isFirstTime = true,
+    this.isFirstTime = true,
   });
 
   factory ChatUser.fromJson(Map<String, dynamic> json) {

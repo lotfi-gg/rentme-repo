@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class EditVehicle extends StatefulWidget {
-  const EditVehicle({super.key});
+  final String carId; // <-- add this
+  const EditVehicle({super.key, required this.carId});
 
   @override
   State<EditVehicle> createState() => _EditVehicleState();

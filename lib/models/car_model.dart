@@ -1,11 +1,11 @@
 class CarInfo {
   String? id;
   String? vehiclefullname;
-
   String? year;
   String? transmission;
   String? price;
   String? status;
+  String? img;
 
   CarInfo({
     required this.id,
@@ -13,8 +13,8 @@ class CarInfo {
     required this.year,
     required this.transmission,
     required this.price,
-    this.status,
-
+    required this.img,
+    this.status = 'Avaiable',
   });
 
   factory CarInfo.fromJson(Map<String, dynamic> json) {
@@ -24,6 +24,7 @@ class CarInfo {
       year: json['year'],
       transmission: json['transmission'],
       price: json['price'],
+      img: json['img'],
       status: json['status'],
     );
   }
@@ -35,6 +36,7 @@ class CarInfo {
       'year': year,
       'transmission': transmission,
       'price': price,
+      'img': img,
       'status': status,
     };
   }

@@ -112,7 +112,7 @@ class _PublicProfileState extends State<PublicProfile> {
           ),
         ],
       ),
-      appBar: AppBar(title: Text(widget.user!.agencyname!)),
+      appBar: AppBar(title: Text(widget.user.agencyname!)),
       body: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
