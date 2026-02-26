@@ -6,6 +6,7 @@ class CarInfo {
   String? price;
   String? status;
   String? img;
+  List<String>? images;
 
   CarInfo({
     required this.id,
@@ -15,6 +16,7 @@ class CarInfo {
     required this.price,
     required this.img,
     this.status = 'Avaiable',
+    this.images,
   });
 
   factory CarInfo.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class CarInfo {
       price: json['price'],
       img: json['img'],
       status: json['status'],
+      images: json['images'] != null ? List<String>.from(json['images']) : [],
     );
   }
 
@@ -38,6 +41,7 @@ class CarInfo {
       'price': price,
       'img': img,
       'status': status,
+      'images': images,
     };
   }
 }

@@ -3,6 +3,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rentme/firebase/fire_auth.dart';
+import 'package:rentme/firebase/fire_storage.dart';
 import 'package:rentme/my_vehicles.dart';
 
 class AddVehicle extends StatefulWidget {
@@ -32,16 +33,6 @@ class _AddVehicleState extends State<AddVehicle> {
     }
   }
 
-  Future<String> _uploadImage(File imageFile, String carId) async {
-    final ref = FirebaseStorage.instance
-        .ref()
-        .child('cars')
-        .child('$carId.jpg');
-
-    await ref.putFile(imageFile); // upload the file
-    return await ref.getDownloadURL(); // return the hosted URL
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,7 +59,7 @@ class _AddVehicleState extends State<AddVehicle> {
                             )
                           : DecorationImage(
                               image: AssetImage(
-                                "images/image1.jpg",
+                                "images/car.jpg",
                               ), // fallback placeholder
                               fit: BoxFit.cover,
                             ),
@@ -172,7 +163,10 @@ class _AddVehicleState extends State<AddVehicle> {
                           String imgUrl = '';
                           if (_selectedImage != null) {
                             // upload image first
-                            imgUrl = await _uploadImage(_selectedImage!, carId);
+                            imgUrl = await FireStorage().uploadCarImage(
+                              _selectedImage!,
+                              carId,
+                            );
                           }
 
                           // only create car if upload succeeded
@@ -181,7 +175,6 @@ class _AddVehicleState extends State<AddVehicle> {
                             vehiclefullname.text,
                             year.text,
                             transmission.text,
-                           
                             price.text,
                             imgUrl, // pass the URL string
                           );

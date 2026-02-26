@@ -23,7 +23,22 @@ class FireStorage {
         'img': imageUrl,
       });
     } catch (e) {
-      print('an error while sending image --> $e');
+      print('an error while changing profile image --> $e');
+    }
+  }
+
+  Future<String> uploadCarImage(File imageFile, String carId) async {
+    try {
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('cars')
+          .child('$carId.jpg');
+
+      await ref.putFile(imageFile);
+      return await ref.getDownloadURL(); // ✅ return URL only
+    } catch (e) {
+      print('Error uploading car image: $e');
+      return '';
     }
   }
 }

@@ -16,7 +16,7 @@ class _WelcomePageState extends State<WelcomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('images/image1.jpg', height: 240),
+            Image.asset('images/car.jpg', height: 240),
             SizedBox(height: 30),
             Text(
               'welcome to the renting app, the easiest to use',

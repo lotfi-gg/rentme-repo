@@ -105,7 +105,7 @@ class _AuthState extends State<Auth> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('images/image1.jpg', height: 200),
+              Image.asset('images/car.jpg', height: 200),
               TextFormField(
                 validator: (value) {
                   if (value == null || value.isEmpty) {

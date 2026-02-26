@@ -107,7 +107,7 @@ class _MyVehiclesState extends State<MyVehicles> {
                                             fit: BoxFit.cover,
                                           )
                                         : Image.asset(
-                                            'images/image1.jpg',
+                                            'images/car.jpg',
                                             height: double.infinity,
                                             width: 200,
                                             fit: BoxFit.cover,
@@ -122,8 +122,11 @@ class _MyVehiclesState extends State<MyVehicles> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(car['vehiclefullname'] ?? ''),
+                                        SizedBox(height: 6),
                                         Text(car['year'] ?? ''),
+                                        SizedBox(height: 6),
                                         Text(car['transmission'] ?? ''),
+                                        SizedBox(height: 6),
                                         Row(
                                           children: [
                                             Text(car['price'] ?? ''),

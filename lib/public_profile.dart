@@ -154,7 +154,7 @@ class _PublicProfileState extends State<PublicProfile> {
                           children: [
                             ClipRRect(
                               child: Image.asset(
-                                'images/image1.jpg',
+                                'images/car.jpg',
                                 height: double.infinity,
                                 width: 200,
                                 fit: BoxFit.cover,
