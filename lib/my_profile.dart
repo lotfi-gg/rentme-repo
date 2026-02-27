@@ -74,7 +74,7 @@ class _MyProfileState extends State<MyProfile> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            width: 150,
+            width: MediaQuery.of(context).size.width * 0.3,
             child: FloatingActionButton.extended(
               heroTag: "EDITBtn",
               onPressed: () {
@@ -88,7 +88,7 @@ class _MyProfileState extends State<MyProfile> {
           ),
           SizedBox(width: MediaQuery.of(context).size.width * 0.2),
           SizedBox(
-            width: 150,
+            width: MediaQuery.of(context).size.width * 0.3,
             child: FloatingActionButton.extended(
               heroTag: "SAVEBtn",
               onPressed: () async {
@@ -144,7 +144,12 @@ class _MyProfileState extends State<MyProfile> {
 
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
+          padding: EdgeInsets.fromLTRB(
+            30,
+            0,
+            30,
+            MediaQuery.of(context).size.height * 0.15,
+          ),
           child: Form(
             key: formstate,
             child: Column(

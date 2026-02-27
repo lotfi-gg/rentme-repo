@@ -1,4 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:rentme/firebase/fire_call.dart';
+import 'package:rentme/models/car_model.dart';
 import 'package:rentme/models/user_model.dart';
 
 class PublicProfile extends StatefulWidget {
@@ -10,6 +15,9 @@ class PublicProfile extends StatefulWidget {
 }
 
 class _PublicProfileState extends State<PublicProfile> {
+  TextEditingController comment = TextEditingController();
+  GlobalKey<FormState> formstate = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,10 +26,12 @@ class _PublicProfileState extends State<PublicProfile> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            width: 150,
+            width: MediaQuery.of(context).size.width * 0.3,
             child: FloatingActionButton.extended(
               heroTag: "callBtn",
-              onPressed: () {},
+              onPressed: () async {
+                //CALL
+              },
               icon: Icon(Icons.phone),
               label: Text('CALL'),
             ),
@@ -61,29 +71,109 @@ class _PublicProfileState extends State<PublicProfile> {
                                 ),
                               ),
                               const SizedBox(height: 10),
-                              Flexible(
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: 20,
-                                  itemBuilder: (context, index) {
-                                    return ListTile(
-                                      leading: Icon(Icons.person),
-                                      title: Text("username"),
-                                      subtitle: Text("the comment"),
+                              Expanded(
+                                child: StreamBuilder<QuerySnapshot>(
+                                  stream: FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(widget.user.id) // profile owner
+                                      .collection('comments')
+                                      .orderBy('createdAt', descending: true)
+                                      .snapshots(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    }
+                                    if (!snapshot.hasData ||
+                                        snapshot.data!.docs.isEmpty) {
+                                      return Center(
+                                        child: Text("No comments yet"),
+                                      );
+                                    }
+
+                                    final comments = snapshot.data!.docs;
+
+                                    return ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: comments.length,
+                                      itemBuilder: (context, index) {
+                                        final data =
+                                            comments[index].data()
+                                                as Map<String, dynamic>;
+                                        final Timestamp? ts = data['createdAt'];
+                                        String formattedDate = '';
+                                        if (ts != null) {
+                                          DateTime dt = ts.toDate();
+                                          formattedDate = DateFormat(
+                                            'dd/MM/yyyy HH:mm',
+                                          ).format(dt);
+                                        }
+                                        return Column(
+                                          children: [
+                                            ListTile(
+                                              leading:
+                                                  (data['img'] != null &&
+                                                      data['img'].isNotEmpty)
+                                                  ? CircleAvatar(
+                                                      backgroundImage:
+                                                          NetworkImage(
+                                                            data['img'],
+                                                          ),
+                                                    )
+                                                  : CircleAvatar(
+                                                      child: Icon(Icons.person),
+                                                    ),
+                                              title: Row(
+                                                children: [
+                                                  Text(
+                                                    data['commenterName'] ??
+                                                        'Unknown',
+                                                  ),
+                                                  Spacer(),
+                                                  Text(
+                                                    formattedDate,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              subtitle: Text(
+                                                data['text'] ?? '',
+                                              ),
+                                            ),
+                                            Divider(thickness: 1),
+                                          ],
+                                        );
+                                      },
                                     );
                                   },
                                 ),
                               ),
-                              const SizedBox(height: 12),
+
                               Row(
                                 children: [
                                   Expanded(
-                                    child: TextField(
-                                      decoration: InputDecoration(
-                                        hintText: "Add a comment...",
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            15,
+                                    child: Form(
+                                      key: formstate,
+                                      child: TextFormField(
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return null;
+                                          }
+                                          return null;
+                                        },
+                                        controller: comment,
+                                        decoration: InputDecoration(
+                                          hintText: "Add a comment...",
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              15,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -91,8 +181,43 @@ class _PublicProfileState extends State<PublicProfile> {
                                   ),
                                   const SizedBox(width: 8),
                                   ElevatedButton(
-                                    onPressed: () {
-                                      print("Comment submitted");
+                                    onPressed: () async {
+                                      if (formstate.currentState!.validate()) {
+                                        final userId =
+                                            widget.user.id; // the profile owner
+                                        final currentUser = FirebaseAuth
+                                            .instance
+                                            .currentUser!; // commenter
+                                        final userDoc = await FirebaseFirestore
+                                            .instance
+                                            .collection('users')
+                                            .doc(currentUser.uid)
+                                            .get();
+                                        final userImg =
+                                            userDoc.data()?['img'] ?? '';
+                                        await FirebaseFirestore.instance
+                                            .collection('users')
+                                            .doc(userId)
+                                            .collection(
+                                              'comments',
+                                            ) // ✅ new subcollection
+                                            .add({
+                                              'text': comment.text.trim(),
+                                              'commenterId': currentUser.uid,
+                                              'commenterName':
+                                                  currentUser.displayName ??
+                                                  'Anonymous',
+                                              'createdAt':
+                                                  FieldValue.serverTimestamp(),
+                                              'img': userImg,
+                                            });
+
+                                        comment.clear(); // reset text field
+
+                                        print("Comment submitted");
+                                      } else {
+                                        print("you didnt submit any comment");
+                                      }
                                     },
                                     child: Icon(Icons.send),
                                   ),
@@ -137,61 +262,102 @@ class _PublicProfileState extends State<PublicProfile> {
             Text('Rates Number'),
             SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                itemCount: 10,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: SizedBox(
-                      height: 150,
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        elevation: 5,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          children: [
-                            ClipRRect(
-                              child: Image.asset(
-                                'images/car.jpg',
-                                height: double.infinity,
-                                width: 200,
-                                fit: BoxFit.cover,
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(widget.user.id) // ChatUser id
+                    .collection('cars')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(child: Text("No cars found"));
+                  }
+
+                  final cars = snapshot.data!.docs.map((doc) {
+                    return CarInfo.fromJson(
+                      doc.data()! as Map<String, dynamic>,
+                    );
+                  }).toList();
+
+                  return ListView.builder(
+                    itemCount: cars.length,
+                    itemBuilder: (context, index) {
+                      final car = cars[index];
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SizedBox(
+                          height: 150,
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            elevation: 15,
+                            child: InkWell(
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.horizontal(
+                                        left: Radius.circular(25),
+                                      ),
+                                      child:
+                                          (car.img != null &&
+                                              car.img!.isNotEmpty)
+                                          ? Image.network(
+                                              car.img!,
+                                              height: double.infinity,
+                                              width: 200,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Image.asset(
+                                              'images/car.jpg',
+                                              height: double.infinity,
+                                              width: 200,
+                                              fit: BoxFit.cover,
+                                            ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(car.vehiclefullname ?? ''),
+                                          SizedBox(height: 5),
+                                          Text(car.year ?? ''),
+                                          SizedBox(height: 5),
+                                          Row(
+                                            children: [
+                                              Text(car.transmission ?? ''),
+                                              Spacer(),
+                                              Text(car.status ?? ''),
+                                            ],
+                                          ),
+                                          SizedBox(height: 5),
+                                          Row(
+                                            children: [
+                                              Text("Price: ${car.price}"),
+                                              Spacer(),
+                                              Text('Time left'),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text('vehicle full name'),
-                                  Text('year'),
-                                  Text('transmission'),
-                                  Row(
-                                    children: [
-                                      SizedBox(),
-                                      Spacer(),
-                                      Text('rented'),
-                                      SizedBox(width: 15),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      SizedBox(),
-                                      Spacer(),
-                                      Text('time'),
-                                      SizedBox(width: 15),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   );
                 },
               ),

@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           (me?.isFirstTime ?? true)
               ? SizedBox(
-                  width: 150,
+                  width: MediaQuery.of(context).size.width * 0.3,
                   child: FloatingActionButton.extended(
                     heroTag: "createBtn",
                     onPressed: () {
@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> {
               : const SizedBox(width: 150),
           SizedBox(width: MediaQuery.of(context).size.width * 0.2),
           SizedBox(
-            width: 150,
+            width: MediaQuery.of(context).size.width * 0.3,
             child: FloatingActionButton.extended(
               heroTag: "rentBtn",
               onPressed: () {

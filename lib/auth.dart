@@ -98,98 +98,102 @@ class _AuthState extends State<Auth> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('images/car.jpg', height: 200),
-              TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Email cannot be empty";
-                  }
-                  if (!RegExp(r'^[^@]{5,}@[^@]{5,}\.[^@]+$').hasMatch(value)) {
-                    return "Enter a valid email";
-                  }
-                  return null;
-                },
-                controller: emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              TextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Password cannot be empty";
-                  }
-                  if (value.length < 6) {
-                    return "Password must be at least 6 characters";
-                  }
-                  return null;
-                },
-                obscureText: true,
-                controller: passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  signInWithEmailPassword();
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 48),
-                ),
-                child: Text('LOGIN'),
-              ),
-
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  signUpWithEmailPassword();
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 48),
-                ),
-                child: Text('SIGN UP'),
-              ),
-
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  signInWithGoogle();
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 48),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('LOGIN WITH GOOGLE'),
-                    SizedBox(width: 8),
-                    Image.asset(
-                      'images/google logo.jpg',
-                      width: 40,
-
-                      fit: BoxFit.contain,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('images/car.jpg', height: 200),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Email cannot be empty";
+                    }
+                    if (!RegExp(
+                      r'^[^@]{5,}@[^@]{5,}\.[^@]+$',
+                    ).hasMatch(value)) {
+                      return "Enter a valid email";
+                    }
+                    return null;
+                  },
+                  controller: emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+                SizedBox(height: 20),
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Password cannot be empty";
+                    }
+                    if (value.length < 6) {
+                      return "Password must be at least 6 characters";
+                    }
+                    return null;
+                  },
+                  obscureText: true,
+                  controller: passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    signInWithEmailPassword();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 48),
+                  ),
+                  child: Text('LOGIN'),
+                ),
+
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    signUpWithEmailPassword();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 48),
+                  ),
+                  child: Text('SIGN UP'),
+                ),
+
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    signInWithGoogle();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 48),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('LOGIN WITH GOOGLE'),
+                      SizedBox(width: 8),
+                      Image.asset(
+                        'images/google logo.jpg',
+                        width: 40,
+
+                        fit: BoxFit.contain,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

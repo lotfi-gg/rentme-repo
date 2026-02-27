@@ -27,10 +27,12 @@ class _RentMeState extends State<RentMe> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return HomePage();
-          } return Auth();
+          }
+          return Auth();
         },
       ),
-      routes: {"homepage": (context) => HomePage(),
+      routes: {
+        "homepage": (context) => HomePage(),
         "auth": (context) => Auth(),
         "myprofile": (context) => MyProfile(),
       },

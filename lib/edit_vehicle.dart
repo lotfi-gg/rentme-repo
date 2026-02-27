@@ -9,6 +9,7 @@ import 'package:rentme/add_vehicle.dart';
 import 'package:rentme/firebase/fire_auth.dart';
 import 'package:rentme/firebase/fire_storage.dart';
 import 'package:rentme/models/car_model.dart';
+import 'package:rentme/my_vehicles.dart';
 
 class EditVehicle extends StatefulWidget {
   final String carId; // <-- add this
@@ -27,6 +28,18 @@ class _EditVehicleState extends State<EditVehicle> {
   TextEditingController price = TextEditingController();
   TextEditingController status = TextEditingController();
   TextEditingController transmission = TextEditingController();
+
+  File? _selectedImage;
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
 
   CarInfo? myvehicle;
   bool readonly = true;
@@ -179,6 +192,9 @@ class _EditVehicleState extends State<EditVehicle> {
                   DropdownButtonFormField<String>(
                     initialValue: myvehicle?.status,
                     validator: (value) {
+                      setState(() {
+                        readonly = true;
+                      });
                       if (value == null || value.trim().isEmpty) {
                         return "field required !";
                       }
@@ -237,28 +253,66 @@ class _EditVehicleState extends State<EditVehicle> {
                               readonly = true;
                             });
                             try {
-                              await FireCar.createCar(
-                                widget.carId,
-                                vehiclefullname.text,
-                                year.text,
-                                transmission.text,
-                                price.text,
-                                _img.isNotEmpty ? _img : (myvehicle?.img ?? ''),
+                              final user = FireCar.auth.currentUser!;
+                              final carId = widget.carId; // ✅ use existing ID
+
+                              String imgUrl =
+                                  myvehicle?.img ?? ''; // fallback to old image
+                              if (_selectedImage != null) {
+                                // upload new image and get URL
+                                imgUrl = await FireStorage().uploadCarImage(
+                                  _selectedImage!,
+                                  carId,
+                                );
+                              }
+
+                              // update existing car
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(user.uid)
+                                  .collection('cars')
+                                  .doc(carId)
+                                  .update({
+                                    'vehiclefullname':
+                                        vehiclefullname.text.isNotEmpty
+                                        ? vehiclefullname.text
+                                        : myvehicle?.vehiclefullname,
+                                    'year': year.text.isNotEmpty
+                                        ? year.text
+                                        : myvehicle?.year,
+                                    'transmission': transmission.text.isNotEmpty
+                                        ? transmission.text
+                                        : myvehicle?.transmission,
+                                    'price': price.text.isNotEmpty
+                                        ? price.text
+                                        : myvehicle?.price,
+                                    'status': status.text.isNotEmpty
+                                        ? status.text
+                                        : myvehicle?.status,
+                                    'img': _selectedImage != null
+                                        ? await FireStorage().uploadCarImage(
+                                            _selectedImage!,
+                                            carId,
+                                          )
+                                        : myvehicle?.img,
+                                  });
+
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const MyVehicles(),
+                                ),
                               );
 
-                              print('car updated -----------');
+                              print('Car updated successfully -----------');
                             } catch (e) {
-                              print('error while creating page ======> $e');
+                              print('Error while updating car ======> $e');
                             }
-                          } else {
-                            setState(() {
-                              readonly = false;
-                            });
                           }
+                          setState(() {
+                            readonly = false;
+                          });
                         },
-                        style: ElevatedButton.styleFrom(
-                          maximumSize: Size(100, 48),
-                        ),
                         child: Text('SAVE'),
                       ),
                     ],
