@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:rentme/firebase/fire_call.dart';
 import 'package:rentme/models/car_model.dart';
 import 'package:rentme/models/user_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PublicProfile extends StatefulWidget {
   final ChatUser user;
@@ -29,8 +29,24 @@ class _PublicProfileState extends State<PublicProfile> {
             width: MediaQuery.of(context).size.width * 0.3,
             child: FloatingActionButton.extended(
               heroTag: "callBtn",
+
               onPressed: () async {
-                //CALL
+                // Get the phone number from Firestore
+                final userDoc = await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(widget.user.id)
+                    .get();
+
+                final phoneNumber = userDoc.data()?['phonenumber'];
+
+                if (phoneNumber != null && phoneNumber.isNotEmpty) {
+                  final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+                  await launchUrl(launchUri);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("No phone number available")),
+                  );
+                }
               },
               icon: Icon(Icons.phone),
               label: Text('CALL'),
