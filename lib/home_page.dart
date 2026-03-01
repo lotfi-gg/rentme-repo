@@ -217,17 +217,26 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .where(
+              FieldPath.documentId,
+              isNotEqualTo: FirebaseAuth.instance.currentUser!.uid,
+            )
+            .snapshots(),
         builder: (context, snapshot) {
+          // Handle errors
+          if (snapshot.hasError) {
+            return const Center(child: Text("Something went wrong"));
+          }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(child: Text("No users found"));
           }
-          final currentUid = FirebaseAuth.instance.currentUser!.uid;
+
           final users = snapshot.data!.docs
-              .where((doc) => doc.id != currentUid)
               .map(
                 (doc) => ChatUser.fromJson(doc.data() as Map<String, dynamic>),
               )

@@ -130,7 +130,7 @@ class _CreatePageState extends State<CreatePage> {
                                 country.text,
                                 province.text,
                                 townhall.text,
-                                false
+                                
                               ),
                             );
                         final prefs = await SharedPreferences.getInstance();

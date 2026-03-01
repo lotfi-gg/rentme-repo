@@ -2,22 +2,47 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rentme/models/car_model.dart';
 import 'package:rentme/models/user_model.dart';
+import 'package:geolocator/geolocator.dart';
 
 class FireAuth {
+  /// Request permission and get current user location
+  Future<Map<String, double>> getUserLocation() async {
+    LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      throw Exception("Location permission denied");
+    }
+
+    Position pos = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.best,
+        distanceFilter: 10,
+      ),
+    );
+    return {'latitude': pos.latitude, 'longitude': pos.longitude};
+  }
+
   static FirebaseAuth auth = FirebaseAuth.instance;
   static FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
 
+  /// Create or update user document with location included
   static Future createUser(
     String phonenumber,
     String agencyname,
     String country,
     String province,
     String townhall,
-    bool isFirstTime,
+    
   ) async {
     User user = auth.currentUser!;
+
+    // Get current image if exists
     final doc = await firebaseFirestore.collection('users').doc(user.uid).get();
     String currentImg = doc.data()?['img'] ?? '';
+
+    // Get user location
+    Map<String, double> location = await FireAuth().getUserLocation();
+
     ChatUser chatUser = ChatUser(
       id: user.uid,
       username: user.displayName ?? '',
@@ -28,7 +53,9 @@ class FireAuth {
       province: province,
       townhall: townhall,
       img: currentImg,
-      isFirstTime: isFirstTime,
+      isFirstTime: false,
+      latitude: location['latitude'],
+      longitude: location['longitude'],
     );
 
     await firebaseFirestore

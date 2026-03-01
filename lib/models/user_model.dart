@@ -9,6 +9,8 @@ class ChatUser {
   String? townhall;
   String? img;
   bool? isFirstTime;
+  double? latitude;
+  double? longitude;
   ChatUser({
     required this.id,
     required this.email,
@@ -20,6 +22,8 @@ class ChatUser {
     required this.townhall,
     required this.img,
     this.isFirstTime = true,
+      this.latitude,
+      this.longitude,
   });
 
   factory ChatUser.fromJson(Map<String, dynamic> json) {
@@ -34,6 +38,8 @@ class ChatUser {
       townhall: json['townhall'],
       img: json['img'],
       isFirstTime: json['isFirstTime'],
+      latitude: json['latitude'],
+      longitude: json['longitude'],
     );
   }
 
@@ -49,6 +55,8 @@ class ChatUser {
       'townhall': townhall,
       'img': img,
       'isFirstTime': isFirstTime,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 }

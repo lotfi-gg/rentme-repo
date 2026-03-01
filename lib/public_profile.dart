@@ -22,234 +22,298 @@ class _PublicProfileState extends State<PublicProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.3,
-            child: FloatingActionButton.extended(
-              heroTag: "callBtn",
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(width: MediaQuery.of(context).size.width * 0.45),
+              SizedBox(width: MediaQuery.of(context).size.width * 0.2),
 
-              onPressed: () async {
-                // Get the phone number from Firestore
-                final userDoc = await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(widget.user.id)
-                    .get();
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.15,
+                child: FloatingActionButton(
+                  heroTag: "locationBtn",
+                  mini: true,
+                  onPressed: () async {
+                    final lat = widget.user.latitude;
+                    final lng = widget.user.longitude;
+                    if (lat != null && lng != null) {
+                      final Uri mapsUri = Uri.parse(
+                        "https://www.google.com/maps/search/?api=1&query=$lat,$lng",
+                      );
 
-                final phoneNumber = userDoc.data()?['phonenumber'];
-
-                if (phoneNumber != null && phoneNumber.isNotEmpty) {
-                  final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
-                  await launchUrl(launchUri);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("No phone number available")),
-                  );
-                }
-              },
-              icon: Icon(Icons.phone),
-              label: Text('CALL'),
-            ),
-          ),
-          SizedBox(width: MediaQuery.of(context).size.width * 0.2),
-          SizedBox(
-            width: 150,
-            child: FloatingActionButton.extended(
-              heroTag: "commentBtn",
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(25),
-                    ),
-                  ),
-                  builder: (context) {
-                    return SafeArea(
-                      child: SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.7,
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                            top: 16,
+                      try {
+                        await launchUrl(
+                          mapsUri,
+                          mode: LaunchMode.externalApplication,
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Could not open location"),
                           ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "Comments",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        );
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("No location available")),
+                      );
+                    }
+                  },
+                  child: const Icon(Icons.location_on, color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 18),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.3,
+                child: FloatingActionButton.extended(
+                  heroTag: "callBtn",
+
+                  onPressed: () async {
+                    // Get the phone number from Firestore
+                    final userDoc = await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(widget.user.id)
+                        .get();
+
+                    final phoneNumber = userDoc.data()?['phonenumber'];
+
+                    if (phoneNumber != null && phoneNumber.isNotEmpty) {
+                      final Uri launchUri = Uri(
+                        scheme: 'tel',
+                        path: phoneNumber,
+                      );
+                      await launchUrl(launchUri);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("No phone number available")),
+                      );
+                    }
+                  },
+                  icon: Icon(Icons.phone),
+                  label: Text('CALL'),
+                ),
+              ),
+              SizedBox(width: MediaQuery.of(context).size.width * 0.2),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.3,
+
+                child: FloatingActionButton.extended(
+                  heroTag: "commentBtn",
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(25),
+                        ),
+                      ),
+                      builder: (context) {
+                        return SafeArea(
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.7,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                left: 16,
+                                right: 16,
+                                top: 16,
                               ),
-                              const SizedBox(height: 10),
-                              Expanded(
-                                child: StreamBuilder<QuerySnapshot>(
-                                  stream: FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(widget.user.id) // profile owner
-                                      .collection('comments')
-                                      .orderBy('createdAt', descending: true)
-                                      .snapshots(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                    if (!snapshot.hasData ||
-                                        snapshot.data!.docs.isEmpty) {
-                                      return Center(
-                                        child: Text("No comments yet"),
-                                      );
-                                    }
-
-                                    final comments = snapshot.data!.docs;
-
-                                    return ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount: comments.length,
-                                      itemBuilder: (context, index) {
-                                        final data =
-                                            comments[index].data()
-                                                as Map<String, dynamic>;
-                                        final Timestamp? ts = data['createdAt'];
-                                        String formattedDate = '';
-                                        if (ts != null) {
-                                          DateTime dt = ts.toDate();
-                                          formattedDate = DateFormat(
-                                            'dd/MM/yyyy HH:mm',
-                                          ).format(dt);
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    "Comments",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Expanded(
+                                    child: StreamBuilder<QuerySnapshot>(
+                                      stream: FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(widget.user.id) // profile owner
+                                          .collection('comments')
+                                          .orderBy(
+                                            'createdAt',
+                                            descending: true,
+                                          )
+                                          .snapshots(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                            child: CircularProgressIndicator(),
+                                          );
                                         }
-                                        return Column(
-                                          children: [
-                                            ListTile(
-                                              leading:
-                                                  (data['img'] != null &&
-                                                      data['img'].isNotEmpty)
-                                                  ? CircleAvatar(
-                                                      backgroundImage:
-                                                          NetworkImage(
-                                                            data['img'],
+                                        if (!snapshot.hasData ||
+                                            snapshot.data!.docs.isEmpty) {
+                                          return Center(
+                                            child: Text("No comments yet"),
+                                          );
+                                        }
+
+                                        final comments = snapshot.data!.docs;
+
+                                        return ListView.builder(
+                                          shrinkWrap: true,
+                                          itemCount: comments.length,
+                                          itemBuilder: (context, index) {
+                                            final data =
+                                                comments[index].data()
+                                                    as Map<String, dynamic>;
+                                            final Timestamp? ts =
+                                                data['createdAt'];
+                                            String formattedDate = '';
+                                            if (ts != null) {
+                                              DateTime dt = ts.toDate();
+                                              formattedDate = DateFormat(
+                                                'dd/MM/yyyy HH:mm',
+                                              ).format(dt);
+                                            }
+                                            return Column(
+                                              children: [
+                                                ListTile(
+                                                  leading:
+                                                      (data['img'] != null &&
+                                                          data['img']
+                                                              .isNotEmpty)
+                                                      ? CircleAvatar(
+                                                          backgroundImage:
+                                                              NetworkImage(
+                                                                data['img'],
+                                                              ),
+                                                        )
+                                                      : CircleAvatar(
+                                                          child: Icon(
+                                                            Icons.person,
                                                           ),
-                                                    )
-                                                  : CircleAvatar(
-                                                      child: Icon(Icons.person),
-                                                    ),
-                                              title: Row(
-                                                children: [
-                                                  Text(
-                                                    data['commenterName'] ??
-                                                        'Unknown',
+                                                        ),
+                                                  title: Row(
+                                                    children: [
+                                                      Text(
+                                                        data['commenterName'],
+                                                      ),
+                                                      Spacer(),
+                                                      Text(
+                                                        formattedDate,
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                  Spacer(),
-                                                  Text(
-                                                    formattedDate,
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: Colors.grey,
-                                                    ),
+                                                  subtitle: Text(
+                                                    data['text'] ?? '',
                                                   ),
-                                                ],
-                                              ),
-                                              subtitle: Text(
-                                                data['text'] ?? '',
-                                              ),
-                                            ),
-                                            Divider(thickness: 1),
-                                          ],
+                                                ),
+                                                Divider(thickness: 1),
+                                              ],
+                                            );
+                                          },
                                         );
                                       },
-                                    );
-                                  },
-                                ),
-                              ),
+                                    ),
+                                  ),
 
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Form(
-                                      key: formstate,
-                                      child: TextFormField(
-                                        validator: (value) {
-                                          if (value == null ||
-                                              value.trim().isEmpty) {
-                                            return null;
-                                          }
-                                          return null;
-                                        },
-                                        controller: comment,
-                                        decoration: InputDecoration(
-                                          hintText: "Add a comment...",
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              15,
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Form(
+                                          key: formstate,
+                                          child: TextFormField(
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.trim().isEmpty) {
+                                                return null;
+                                              }
+                                              return null;
+                                            },
+                                            controller: comment,
+                                            decoration: InputDecoration(
+                                              hintText: "Add a comment...",
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(15),
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      if (formstate.currentState!.validate()) {
-                                        final userId =
-                                            widget.user.id; // the profile owner
-                                        final currentUser = FirebaseAuth
-                                            .instance
-                                            .currentUser!; // commenter
-                                        final userDoc = await FirebaseFirestore
-                                            .instance
-                                            .collection('users')
-                                            .doc(currentUser.uid)
-                                            .get();
-                                        final userImg =
-                                            userDoc.data()?['img'] ?? '';
-                                        await FirebaseFirestore.instance
-                                            .collection('users')
-                                            .doc(userId)
-                                            .collection(
-                                              'comments',
-                                            ) // ✅ new subcollection
-                                            .add({
-                                              'text': comment.text.trim(),
-                                              'commenterId': currentUser.uid,
-                                              'commenterName':
-                                                  currentUser.displayName ??
-                                                  'Anonymous',
-                                              'createdAt':
-                                                  FieldValue.serverTimestamp(),
-                                              'img': userImg,
-                                            });
+                                      const SizedBox(width: 8),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          if (formstate.currentState!
+                                              .validate()) {
+                                            final userId = widget
+                                                .user
+                                                .id; // the profile owner
+                                            final currentUser = FirebaseAuth
+                                                .instance
+                                                .currentUser!; // commenter
+                                            final userDoc =
+                                                await FirebaseFirestore.instance
+                                                    .collection('users')
+                                                    .doc(currentUser.uid)
+                                                    .get();
+                                            final userImg =
+                                                userDoc.data()?['img'] ?? '';
+                                            await FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(userId)
+                                                .collection(
+                                                  'comments',
+                                                ) // ✅ new subcollection
+                                                .add({
+                                                  'text': comment.text.trim(),
+                                                  'commenterId':
+                                                      currentUser.uid,
+                                                  'commenterName':
+                                                      currentUser.email
+                                                          ?.split('@')
+                                                          .first ??
+                                                      'Anonymous',
+                                                  'createdAt':
+                                                      FieldValue.serverTimestamp(),
+                                                  'img': userImg,
+                                                });
 
-                                        comment.clear(); // reset text field
+                                            comment.clear(); // reset text field
 
-                                        print("Comment submitted");
-                                      } else {
-                                        print("you didnt submit any comment");
-                                      }
-                                    },
-                                    child: Icon(Icons.send),
+                                            print("Comment submitted");
+                                          } else {
+                                            print(
+                                              "you didnt submit any comment",
+                                            );
+                                          }
+                                        },
+                                        child: Icon(Icons.send),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     );
                   },
-                );
-              },
-              icon: Icon(Icons.messenger_outline),
-              label: Text('COMMENTS'),
-            ),
+                  icon: Icon(Icons.messenger_outline),
+                  label: Text('COMMENTS'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
