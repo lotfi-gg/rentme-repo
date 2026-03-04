@@ -17,6 +17,57 @@ class PublicProfile extends StatefulWidget {
 class _PublicProfileState extends State<PublicProfile> {
   TextEditingController comment = TextEditingController();
   GlobalKey<FormState> formstate = GlobalKey<FormState>();
+  late String myRatings = '';
+  void _showRatingDialog(BuildContext context) {
+    int selectedStars = 0;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Rate this service"),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  return IconButton(
+                    icon: Icon(
+                      index < selectedStars ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        selectedStars = index + 1;
+                      });
+                    },
+                  );
+                }),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                final currentUser = FirebaseAuth.instance.currentUser!;
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(widget.user.id)
+                    .collection('ratings')
+                    .doc(currentUser.uid) // ✅ ensures one rating per user
+                    .set({
+                      'stars': selectedStars,
+                      'createdAt': FieldValue.serverTimestamp(),
+                    });
+                Navigator.pop(context);
+              },
+              child: Text("Submit"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,13 +79,16 @@ class _PublicProfileState extends State<PublicProfile> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(width: MediaQuery.of(context).size.width * 0.45),
+              SizedBox(width: MediaQuery.of(context).size.width * 0.5),
               SizedBox(width: MediaQuery.of(context).size.width * 0.2),
 
               SizedBox(
-                width: MediaQuery.of(context).size.width * 0.15,
+                width: MediaQuery.of(context).size.width * 0.1,
                 child: FloatingActionButton(
                   heroTag: "locationBtn",
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadiusGeometry.circular(30),
+                  ),
                   mini: true,
                   onPressed: () async {
                     final lat = widget.user.latitude;
@@ -75,6 +129,9 @@ class _PublicProfileState extends State<PublicProfile> {
                 width: MediaQuery.of(context).size.width * 0.3,
                 child: FloatingActionButton.extended(
                   heroTag: "callBtn",
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadiusGeometry.circular(30),
+                  ),
 
                   onPressed: () async {
                     // Get the phone number from Firestore
@@ -107,6 +164,9 @@ class _PublicProfileState extends State<PublicProfile> {
 
                 child: FloatingActionButton.extended(
                   heroTag: "commentBtn",
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadiusGeometry.circular(30),
+                  ),
                   onPressed: () {
                     showModalBottomSheet(
                       context: context,
@@ -328,18 +388,64 @@ class _PublicProfileState extends State<PublicProfile> {
               child: Image.asset('images/user logo.png', height: 150),
             ),
             SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.star, color: Colors.amber, size: 30),
-                Icon(Icons.star, color: Colors.amber, size: 30),
-                Icon(Icons.star, color: Colors.amber, size: 30),
-                Icon(Icons.star, color: Colors.amber, size: 30),
-                Icon(Icons.star_border, color: Colors.amber, size: 30),
-              ],
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(widget.user.id)
+                  .collection('ratings')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return InkWell(
+                    onTap: () {
+                      _showRatingDialog(context);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(5, (index) {
+                        return Icon(
+                          Icons.star_border,
+                          color: Colors.amber,
+                          size: 30,
+                        );
+                      }),
+                    ),
+                  );
+                }
+
+                final ratings = snapshot.data!.docs
+                    .map(
+                      (doc) =>
+                          (doc.data() as Map<String, dynamic>)['stars'] as int,
+                    )
+                    .toList();
+
+                final avgRating =
+                    ratings.reduce((a, b) => a + b) / ratings.length;
+                myRatings = ratings.length.toString();
+
+                return InkWell(
+                  onTap: () {
+                    _showRatingDialog(context);
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return Icon(
+                        index < avgRating.round()
+                            ? Icons.star
+                            : Icons.star_border,
+                        color: Colors.amber,
+                        size: 30,
+                      );
+                    }),
+                  ),
+                );
+              },
             ),
+
             SizedBox(height: 10),
-            Text('Rates Number'),
+            Text('Ratings: $myRatings'),
             SizedBox(height: 20),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(

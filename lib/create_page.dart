@@ -130,7 +130,6 @@ class _CreatePageState extends State<CreatePage> {
                                 country.text,
                                 province.text,
                                 townhall.text,
-                                
                               ),
                             );
                         final prefs = await SharedPreferences.getInstance();
@@ -138,6 +137,9 @@ class _CreatePageState extends State<CreatePage> {
                         Navigator.of(context).pushNamed('myprofile');
                         print('user created -----------');
                       } catch (e) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
                         print('error while creating page ======> $e');
                       }
                     }
