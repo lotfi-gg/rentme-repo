@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:rentme/avaiable_cars.dart';
 import 'package:rentme/firebase/fire_auth.dart';
 import 'package:rentme/firebase/fire_storage.dart';
 import 'package:rentme/models/car_model.dart';
@@ -299,7 +300,7 @@ class _EditVehicleState extends State<EditVehicle> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const MyVehicles(),
+                                  builder: (context) => const AvaiableCars(),
                                 ),
                               );
 

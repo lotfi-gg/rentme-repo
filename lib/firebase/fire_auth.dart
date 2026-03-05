@@ -32,7 +32,6 @@ class FireAuth {
     String country,
     String province,
     String townhall,
-    
   ) async {
     User user = auth.currentUser!;
 
@@ -86,6 +85,7 @@ class FireCar {
       transmission: transmission,
       price: price,
       img: img,
+      NameAndYear: "$vehiclefullname $year",
     );
 
     await firebaseFirestore

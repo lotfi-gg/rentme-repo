@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:rentme/avaiable_cars.dart';
 import 'package:rentme/firebase/fire_auth.dart';
 import 'package:rentme/firebase/fire_storage.dart';
 import 'package:rentme/home_page.dart';
@@ -106,7 +107,6 @@ class _MyProfileState extends State<MyProfile> {
                             country.text,
                             province.text,
                             townhall.text,
-                              
                           ),
                         );
 

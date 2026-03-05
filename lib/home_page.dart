@@ -197,7 +197,7 @@ class _HomePageState extends State<HomePage> {
               user.latitude!,
               user.longitude!,
             );
-            return dist < 10; // threshold in km
+            return dist < 15; // threshold in km
           }).toList();
 
           // ✅ FIX: Only show "No nearby agencies" when in nearby mode
