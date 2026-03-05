@@ -10,6 +10,8 @@ import 'package:rentme/my_profile.dart';
 import 'package:rentme/public_profile.dart';
 import 'dart:math' show cos, sqrt, asin;
 
+import 'package:rentme/search_by_car.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -116,6 +118,12 @@ class _HomePageState extends State<HomePage> {
                         child: const Icon(Icons.directions_car),
                         label: 'Search by Car',
                         onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SearchByCar(),
+                            ),
+                          );
                           // TODO: implement search by car logic
                           print("Search by Car clicked");
                         },
@@ -149,7 +157,7 @@ class _HomePageState extends State<HomePage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => MyProfile()),
+                      MaterialPageRoute(builder: (context) => MyProfile( )),
                     );
                   },
                   child: const CircleAvatar(

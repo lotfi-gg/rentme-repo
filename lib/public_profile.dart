@@ -7,8 +7,9 @@ import 'package:rentme/models/user_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PublicProfile extends StatefulWidget {
+   
   final ChatUser user;
-  const PublicProfile({super.key, required this.user});
+  const PublicProfile({super.key, required this.user, });
 
   @override
   State<PublicProfile> createState() => _PublicProfileState();

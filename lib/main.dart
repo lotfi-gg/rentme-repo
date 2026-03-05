@@ -34,7 +34,7 @@ class _RentMeState extends State<RentMe> {
       routes: {
         "homepage": (context) => HomePage(),
         "auth": (context) => Auth(),
-        "myprofile": (context) => MyProfile(),
+        "myprofile": (context) => MyProfile( ),
       },
     );
   }

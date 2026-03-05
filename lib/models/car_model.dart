@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class CarInfo {
   String? id;
   String? vehiclefullname;
@@ -8,7 +10,7 @@ class CarInfo {
   String? status;
   String? img;
   List<String>? images;
-  int? rentedAt;
+  final DateTime? rentedAt;
   int? avaiableIn;
 
   CarInfo({
@@ -30,14 +32,16 @@ class CarInfo {
       id: json['id'],
       vehiclefullname: json['vehiclefullname'],
       NameAndYear: json['NameAndYear'],
-
       year: json['year'],
       transmission: json['transmission'],
       price: json['price'],
       img: json['img'],
       status: json['status'],
       images: json['images'] != null ? List<String>.from(json['images']) : [],
-      rentedAt: json['rentedAt'],
+      rentedAt: json['rentedAt'] != null
+          ? (json['rentedAt'] as Timestamp)
+                .toDate() // ✅ convert Timestamp → DateTime
+          : null,
       avaiableIn: json['avaiableIn'] ?? 0,
     );
   }
@@ -53,7 +57,9 @@ class CarInfo {
       'img': img,
       'status': status,
       'images': images,
-      'rentedAt': rentedAt,
+      'rentedAt': rentedAt != null
+          ? Timestamp.fromDate(rentedAt!)
+          : null, // ✅ convert back
       'avaiableIn': avaiableIn,
     };
   }

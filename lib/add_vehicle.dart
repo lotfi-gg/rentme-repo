@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rentme/avaiable_cars.dart';
@@ -52,98 +53,78 @@ class _AddVehicleState extends State<AddVehicle> {
                       color: Colors.grey.shade200,
                       image: _selectedImage != null
                           ? DecorationImage(
-                              image: FileImage(
-                                _selectedImage!,
-                              ), // show picked image
+                              image: FileImage(_selectedImage!),
                               fit: BoxFit.cover,
                             )
-                          : DecorationImage(
-                              image: AssetImage(
-                                "images/car.jpg",
-                              ), // fallback placeholder
+                          : const DecorationImage(
+                              image: AssetImage("images/car.jpg"),
                               fit: BoxFit.cover,
                             ),
                     ),
                   ),
-
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: () {
-                      _pickImage();
-                    },
-                    child: Text('ADD PHOTO'),
+                    onPressed: _pickImage,
+                    child: const Text('ADD PHOTO'),
                   ),
-                  SizedBox(height: 40),
+                  const SizedBox(height: 40),
                   TextFormField(
                     controller: vehiclefullname,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "field required !";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? "field required !"
+                        : null,
+                    decoration: const InputDecoration(
                       hintText: "Vehicle Full Name",
                       border: UnderlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                   TextFormField(
                     controller: year,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "field required !";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? "field required !"
+                        : null,
+                    decoration: const InputDecoration(
                       hintText: "Year",
                       border: UnderlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                   DropdownButtonFormField<String>(
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "field required !";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(labelText: "Transmission"),
-                    items: ["Automatic", "Manual"].map((Transmission) {
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? "field required !"
+                        : null,
+                    decoration: const InputDecoration(
+                      labelText: "Transmission",
+                    ),
+                    items: ["Automatic", "Manual"].map((trans) {
                       return DropdownMenuItem<String>(
-                        value: Transmission,
-                        child: Text(Transmission),
+                        value: trans,
+                        child: Text(trans),
                       );
                     }).toList(),
                     onChanged: (value) {
-                      setState(() {
-                        transmission.text = value ?? '';
-                      });
+                      transmission.text = value ?? '';
                     },
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                   TextFormField(
                     controller: price,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "field required !";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                      hintText: "Price in Local Curancy",
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? "field required !"
+                        : null,
+                    decoration: const InputDecoration(
+                      hintText: "Price in Local Currency",
                       border: UnderlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 30),
-
+                  const SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: () async {
                       if (formstate.currentState!.validate()) {
                         if (_selectedImage == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text(
                                 "Please add a photo before creating the car",
                               ),
@@ -160,24 +141,39 @@ class _AddVehicleState extends State<AddVehicle> {
                               .doc()
                               .id;
 
-                          String imgUrl = '';
-                          if (_selectedImage != null) {
-                            // upload image first
-                            imgUrl = await FireStorage().uploadCarImage(
-                              _selectedImage!,
-                              carId,
-                            );
-                          }
+                          String imgUrl = await FireStorage().uploadCarImage(
+                            _selectedImage!,
+                            carId,
+                          );
 
-                          // only create car if upload succeeded
+                          // Save to user's subcollection
                           await FireCar.createCar(
                             carId,
                             vehiclefullname.text,
                             year.text,
                             transmission.text,
                             price.text,
-                            imgUrl, // pass the URL string
+                            imgUrl,
                           );
+
+                          // Save to global cars collection
+                          await FireCar.firebaseFirestore
+                              .collection('cars')
+                              .doc(carId)
+                              .set({
+                                'id': carId,
+                                'ownerId': user.uid,
+                                'vehiclefullname': vehiclefullname.text,
+                                'year': year.text,
+                                'transmission': transmission.text,
+                                'price': price.text,
+                                'img': imgUrl,
+                                'status': status.text.trim().isEmpty
+                                    ? 'Available'
+                                    : status.text.trim(),
+                                'avaiableIn': 0, // ✅ initialize
+                                'rentedAt': null, // ✅ keep consistent
+                              });
 
                           Navigator.pushReplacement(
                             context,
@@ -192,7 +188,7 @@ class _AddVehicleState extends State<AddVehicle> {
                         }
                       }
                     },
-                    child: Text('ADD'),
+                    child: const Text('ADD'),
                   ),
                 ],
               ),

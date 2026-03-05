@@ -15,7 +15,7 @@ class RentedCars extends StatefulWidget {
 }
 
 class _RentedCarsState extends State<RentedCars> {
-  String name = ''; // holds the search text
+  String search = ''; // holds the search text
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class _RentedCarsState extends State<RentedCars> {
             onChanged: (value) {
               setState(() {
                 // ✅ trim spaces and lowercase input
-                name = value.trim().toLowerCase();
+                search = value.trim().toLowerCase();
               });
             },
           ),
@@ -40,7 +40,7 @@ class _RentedCarsState extends State<RentedCars> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const MyProfile()),
+              MaterialPageRoute(builder: (context) => const MyProfile( )),
             );
           },
         ),
@@ -86,14 +86,14 @@ class _RentedCarsState extends State<RentedCars> {
                         car['year']?.toString().toLowerCase().trim() ?? '';
 
                     // If search is empty, show all cars
-                    if (name.isEmpty) {
+                    if (search.isEmpty) {
                       return buildCarCard(car);
                     }
 
                     // ✅ Flexible search across multiple fields
-                    if (nameAndYear.contains(name) ||
-                        vehicleName.contains(name) ||
-                        year.contains(name)) {
+                    if (nameAndYear.contains(search) ||
+                        vehicleName.contains(search) ||
+                        year.contains(search)) {
                       return buildCarCard(car);
                     }
 
