@@ -11,6 +11,7 @@ import 'package:rentme/public_profile.dart';
 import 'dart:math' show cos, sqrt, asin;
 
 import 'package:rentme/search_by_car.dart';
+import 'package:rentme/search_by_location.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -110,8 +111,220 @@ class _HomePageState extends State<HomePage> {
                         child: const Icon(Icons.location_on),
                         label: 'Search by Location',
                         onTap: () {
-                          // TODO: implement search by location logic
-                          print("Search by Location clicked");
+                          showModalBottomSheet(
+                            context: context,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20),
+                              ),
+                            ),
+                            builder: (context) {
+                              String? selectedCountry;
+                              String? selectedProvince;
+                              String? selectedTownhall;
+
+                              return StatefulBuilder(
+                                builder: (context, setModalState) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          "Search by Location",
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+
+                                        // 🔹 Country dropdown
+                                        StreamBuilder<QuerySnapshot>(
+                                          stream: FirebaseFirestore.instance
+                                              .collection('users')
+                                              .snapshots(),
+                                          builder: (context, snapshot) {
+                                            if (!snapshot.hasData)
+                                              return const CircularProgressIndicator();
+                                            final countries = snapshot
+                                                .data!
+                                                .docs
+                                                .map(
+                                                  (doc) =>
+                                                      doc['country']
+                                                          ?.toString() ??
+                                                      '',
+                                                )
+                                                .where((c) => c.isNotEmpty)
+                                                .toSet()
+                                                .toList();
+
+                                            return DropdownButtonFormField<
+                                              String
+                                            >(
+                                              decoration: const InputDecoration(
+                                                labelText: "Country",
+                                              ),
+                                              value: selectedCountry,
+                                              items: countries
+                                                  .map(
+                                                    (c) => DropdownMenuItem(
+                                                      value: c,
+                                                      child: Text(c),
+                                                    ),
+                                                  )
+                                                  .toList(),
+                                              onChanged: (val) {
+                                                setModalState(() {
+                                                  selectedCountry = val;
+                                                  selectedProvince = null;
+                                                  selectedTownhall = null;
+                                                });
+                                              },
+                                            );
+                                          },
+                                        ),
+
+                                        const SizedBox(height: 12),
+
+                                        // 🔹 Province dropdown (filtered by country)
+                                        if (selectedCountry != null)
+                                          StreamBuilder<QuerySnapshot>(
+                                            stream: FirebaseFirestore.instance
+                                                .collection('users')
+                                                .where(
+                                                  'country',
+                                                  isEqualTo: selectedCountry,
+                                                )
+                                                .snapshots(),
+                                            builder: (context, snapshot) {
+                                              if (!snapshot.hasData)
+                                                return const CircularProgressIndicator();
+                                              final provinces = snapshot
+                                                  .data!
+                                                  .docs
+                                                  .map(
+                                                    (doc) =>
+                                                        doc['province']
+                                                            ?.toString() ??
+                                                        '',
+                                                  )
+                                                  .where((p) => p.isNotEmpty)
+                                                  .toSet()
+                                                  .toList();
+
+                                              return DropdownButtonFormField<
+                                                String
+                                              >(
+                                                decoration:
+                                                    const InputDecoration(
+                                                      labelText: "Province",
+                                                    ),
+                                                value: selectedProvince,
+                                                items: provinces
+                                                    .map(
+                                                      (p) => DropdownMenuItem(
+                                                        value: p,
+                                                        child: Text(p),
+                                                      ),
+                                                    )
+                                                    .toList(),
+                                                onChanged: (val) {
+                                                  setModalState(() {
+                                                    selectedProvince = val;
+                                                    selectedTownhall = null;
+                                                  });
+                                                },
+                                              );
+                                            },
+                                          ),
+
+                                        const SizedBox(height: 12),
+
+                                        // 🔹 Townhall dropdown (filtered by province)
+                                        if (selectedProvince != null)
+                                          StreamBuilder<QuerySnapshot>(
+                                            stream: FirebaseFirestore.instance
+                                                .collection('users')
+                                                .where(
+                                                  'country',
+                                                  isEqualTo: selectedCountry,
+                                                )
+                                                .where(
+                                                  'province',
+                                                  isEqualTo: selectedProvince,
+                                                )
+                                                .snapshots(),
+                                            builder: (context, snapshot) {
+                                              if (!snapshot.hasData)
+                                                return const CircularProgressIndicator();
+                                              final townhalls = snapshot
+                                                  .data!
+                                                  .docs
+                                                  .map(
+                                                    (doc) =>
+                                                        doc['townhall']
+                                                            ?.toString() ??
+                                                        '',
+                                                  )
+                                                  .where((t) => t.isNotEmpty)
+                                                  .toSet()
+                                                  .toList();
+
+                                              return DropdownButtonFormField<
+                                                String
+                                              >(
+                                                decoration:
+                                                    const InputDecoration(
+                                                      labelText: "Townhall",
+                                                    ),
+                                                value: selectedTownhall,
+                                                items: townhalls
+                                                    .map(
+                                                      (t) => DropdownMenuItem(
+                                                        value: t,
+                                                        child: Text(t),
+                                                      ),
+                                                    )
+                                                    .toList(),
+                                                onChanged: (val) {
+                                                  setModalState(() {
+                                                    selectedTownhall = val;
+                                                  });
+                                                },
+                                              );
+                                            },
+                                          ),
+
+                                        const SizedBox(height: 20),
+
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    SearchResultsPage(
+                                                      country: selectedCountry,
+                                                      province:
+                                                          selectedProvince,
+                                                      townhall:
+                                                          selectedTownhall,
+                                                    ),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text("Search"),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          );
                         },
                       ),
                       SpeedDialChild(
@@ -157,7 +370,7 @@ class _HomePageState extends State<HomePage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => MyProfile( )),
+                      MaterialPageRoute(builder: (context) => MyProfile()),
                     );
                   },
                   child: const CircleAvatar(
@@ -214,77 +427,85 @@ class _HomePageState extends State<HomePage> {
           }
 
           return randomMode
-              ? ListView.builder(
-                  itemCount: users.length,
-                  itemBuilder: (context, index) {
-                    final user = users[index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: SizedBox(
-                        height: 130,
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          elevation: 2,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(25),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      PublicProfile(user: user),
-                                ),
-                              );
-                            },
-                            child: Row(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(25),
-                                    bottomLeft: Radius.circular(25),
+              ? RefreshIndicator(
+                  onRefresh: () async {
+                    setState(() {}); // triggers rebuild
+                  },
+                  child: ListView.builder(
+                    itemCount: users.length,
+                    itemBuilder: (context, index) {
+                      // 🔑 Shuffle users before displaying
+                      final shuffledUsers = [...users]..shuffle();
+                      final user = shuffledUsers[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: SizedBox(
+                          height: 130,
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            elevation: 2,
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(25),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        PublicProfile(user: user),
                                   ),
-                                  child:
-                                      user.img != null && user.img!.isNotEmpty
-                                      ? Image.network(
-                                          user.img!,
-                                          height: double.infinity,
-                                          width: 120,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Image.asset(
-                                          'images/user logo.png',
-                                          height: double.infinity,
-                                          width: 120,
-                                          fit: BoxFit.cover,
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(25),
+                                      bottomLeft: Radius.circular(25),
+                                    ),
+                                    child:
+                                        user.img != null && user.img!.isNotEmpty
+                                        ? Image.network(
+                                            user.img!,
+                                            height: double.infinity,
+                                            width: 120,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Image.asset(
+                                            'images/user logo.png',
+                                            height: double.infinity,
+                                            width: 120,
+                                            fit: BoxFit.cover,
+                                          ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(user.agencyname ?? "No agency"),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          "${user.province} / ${user.townhall}",
                                         ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(user.agencyname ?? "No agency"),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        "${user.province} / ${user.townhall}",
-                                      ),
-                                      const SizedBox(height: 8),
-                                      const Text("Available Vehicles: 12345"),
-                                    ],
+                                        const SizedBox(height: 8),
+                                        const Text("Available Vehicles: 12345"),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 )
               : ListView.builder(
                   itemCount: nearbyUsers.length,

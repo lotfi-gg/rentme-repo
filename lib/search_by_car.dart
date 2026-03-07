@@ -103,10 +103,10 @@ class _SearchByCarState extends State<SearchByCar> {
           .get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Text('');
         }
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const Text("Owner info not found");
+          return const Text("");
         }
 
         final ownerData = snapshot.data!.data() as Map<String, dynamic>;
