@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:rentme/add_vehicle.dart';
 import 'package:rentme/edit_vehicle.dart';
 import 'package:rentme/my_profile.dart';
 
@@ -40,7 +39,7 @@ class _RentedCarsState extends State<RentedCars> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const MyProfile( )),
+              MaterialPageRoute(builder: (context) => const MyProfile()),
             );
           },
         ),
@@ -122,6 +121,65 @@ class _RentedCarsState extends State<RentedCars> {
           margin: const EdgeInsets.symmetric(vertical: 5),
           child: InkWell(
             borderRadius: BorderRadius.circular(25),
+            onLongPress: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text("Make Available"),
+                  content: const Text(
+                    "Do you want to mark this car as available again?",
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Cancel"),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                      ),
+                      onPressed: () async {
+                        try {
+                          // ✅ Reset availability in user’s subcollection
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(FirebaseAuth.instance.currentUser!.uid)
+                              .collection('cars')
+                              .doc(car['id'])
+                              .update({
+                                'avaiableIn': 0,
+                                'status': 'Available',
+                                'rentedAt': null, // optional: clear rentedAt
+                              });
+
+                          // ✅ Reset in global cars collection too
+                          await FirebaseFirestore.instance
+                              .collection('cars')
+                              .doc(car['id'])
+                              .update({
+                                'avaiableIn': 0,
+                                'status': 'Available',
+                                'rentedAt': null,
+                              });
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Car marked as available"),
+                            ),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text("Error: $e")));
+                        }
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Confirm"),
+                    ),
+                  ],
+                ),
+              );
+            },
             onTap: () {
               Navigator.push(
                 context,
@@ -164,7 +222,20 @@ class _RentedCarsState extends State<RentedCars> {
                         const SizedBox(height: 6),
                         Text(car['transmission'] ?? ''),
                         const SizedBox(height: 6),
-                        Text(car['price'] ?? ''),
+                        Row(
+                          children: [
+                            Text(car['price'] ?? ''),
+                            Spacer(),
+                            Text(
+                              // 🔑 Convert price to int and multiply by days
+                              "Total: ${(int.tryParse(car['price'].toString()) ?? 0) * (car['avaiableIn'] as int)} DA",
+                              style: const TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                         Row(
                           children: [
                             const Spacer(),

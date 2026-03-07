@@ -131,6 +131,86 @@ class _AvaiableCarsState extends State<AvaiableCars> {
               margin: const EdgeInsets.symmetric(vertical: 5),
               child: InkWell(
                 borderRadius: BorderRadius.circular(25),
+                onLongPress: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      int? selectedDays;
+
+                      return AlertDialog(
+                        title: const Text("Rent Car"),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              "How many days do you want to rent this car?",
+                            ),
+                            const SizedBox(height: 12),
+                            TextField(
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: "Number of days",
+                              ),
+                              onChanged: (value) {
+                                selectedDays = int.tryParse(value);
+                              },
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("Cancel"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              if (selectedDays != null && selectedDays! > 0) {
+                                try {
+                                  // 🔑 Update the car’s avaiableIn field
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(
+                                        FirebaseAuth.instance.currentUser!.uid,
+                                      )
+                                      .collection('cars')
+                                      .doc(car['id'])
+                                      .update({
+                                        'avaiableIn': selectedDays,
+                                        'rentedAt': DateTime.now(),
+                                      });
+
+                                  // If you also keep a global cars collection:
+                                  await FirebaseFirestore.instance
+                                      .collection('cars')
+                                      .doc(car['id'])
+                                      .update({
+                                        'avaiableIn': selectedDays,
+                                        'rentedAt': DateTime.now(),
+                                      });
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        "Car rented for $selectedDays day(s) successfully",
+                                      ),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text("Error: $e")),
+                                  );
+                                }
+                                Navigator.pop(context);
+                              }
+                            },
+                            child: const Text("Confirm"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
                 onTap: () {
                   Navigator.push(
                     context,

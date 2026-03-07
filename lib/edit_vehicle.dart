@@ -9,7 +9,6 @@ import 'package:rentme/avaiable_cars.dart';
 import 'package:rentme/firebase/fire_auth.dart';
 import 'package:rentme/firebase/fire_storage.dart';
 import 'package:rentme/models/car_model.dart';
-import 'package:rentme/my_vehicles.dart';
 
 class EditVehicle extends StatefulWidget {
   final String carId; // <-- add this
