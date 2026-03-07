@@ -11,7 +11,7 @@ import 'package:rentme/firebase/fire_storage.dart';
 import 'package:rentme/models/car_model.dart';
 
 class EditVehicle extends StatefulWidget {
-  final String carId; // <-- add this
+  final String carId;
   const EditVehicle({super.key, required this.carId});
 
   @override
@@ -29,16 +29,6 @@ class _EditVehicleState extends State<EditVehicle> {
   TextEditingController transmission = TextEditingController();
 
   File? _selectedImage;
-  Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-    );
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
-    }
-  }
 
   CarInfo? myvehicle;
   bool readonly = true;
@@ -57,10 +47,11 @@ class _EditVehicleState extends State<EditVehicle> {
           if (doc.exists) {
             setState(() {
               myvehicle = CarInfo.fromJson(doc.data()!);
-              vehiclefullname.text = myvehicle!.vehiclefullname!;
-              year.text = myvehicle!.year!;
-              price.text = myvehicle!.price!;
-              status.text = myvehicle!.status!;
+              vehiclefullname.text = myvehicle!.vehiclefullname ?? '';
+              year.text = myvehicle!.year ?? '';
+              price.text = myvehicle!.price ?? '';
+              status.text = myvehicle!.status ?? '';
+              transmission.text = myvehicle!.transmission ?? '';
             });
           }
         });
@@ -78,6 +69,7 @@ class _EditVehicleState extends State<EditVehicle> {
               key: formstate,
               child: Column(
                 children: [
+                  // --- Image preview ---
                   Center(
                     child: Stack(
                       clipBehavior: Clip.none,
@@ -117,61 +109,54 @@ class _EditVehicleState extends State<EditVehicle> {
                                 );
                               }
                             },
-                            icon: Icon(Iconsax.edit),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: -20,
-                          left: 230,
-                          child: IconButton.filled(
-                            onPressed: () async {},
-                            icon: Icon(Iconsax.add),
+                            icon: const Icon(Iconsax.edit),
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  SizedBox(height: 40),
+                  const SizedBox(height: 40),
                   TextFormField(
                     readOnly: readonly,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "field required !";
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? "field required !"
+                        : null,
                     controller: vehiclefullname,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: "Vehicle Full Name",
                       border: UnderlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                   TextFormField(
                     readOnly: readonly,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "field required !";
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? "field required !"
+                        : null,
                     controller: year,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: "Year",
                       border: UnderlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
+
+                  // --- Transmission dropdown ---
                   DropdownButtonFormField<String>(
-                    initialValue: myvehicle?.transmission,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "field required !";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(labelText: "Transmission"),
+                    value:
+                        [
+                          "Automatic",
+                          "Manual",
+                        ].contains(myvehicle?.transmission)
+                        ? myvehicle?.transmission
+                        : null,
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? "field required !"
+                        : null,
+                    decoration: const InputDecoration(
+                      labelText: "Transmission",
+                    ),
                     items: ["Automatic", "Manual"].map((transmission) {
                       return DropdownMenuItem<String>(
                         value: transmission,
@@ -184,23 +169,21 @@ class _EditVehicleState extends State<EditVehicle> {
                             setState(() {
                               transmission.text = value ?? '';
                             });
-                            print('-----Transmission-----> $value');
                           },
                   ),
-                  SizedBox(height: 30),
+
+                  const SizedBox(height: 30),
+
+                  // --- Status dropdown ---
                   DropdownButtonFormField<String>(
-                    initialValue: myvehicle?.status,
-                    validator: (value) {
-                      setState(() {
-                        readonly = true;
-                      });
-                      if (value == null || value.trim().isEmpty) {
-                        return "field required !";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(labelText: "Status"),
-                    items: ["Avaiable", "Rented"].map((status) {
+                    value: ["Available", "Rented"].contains(myvehicle?.status)
+                        ? myvehicle?.status
+                        : null,
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? "field required !"
+                        : null,
+                    decoration: const InputDecoration(labelText: "Status"),
+                    items: ["Available", "Rented"].map((status) {
                       return DropdownMenuItem<String>(
                         value: status,
                         child: Text(status),
@@ -209,25 +192,25 @@ class _EditVehicleState extends State<EditVehicle> {
                     onChanged: readonly
                         ? null
                         : (value) {
-                            print('-----Status-----> $value');
+                            setState(() {
+                              status.text = value ?? '';
+                            });
                           },
                   ),
-                  SizedBox(height: 30),
+
+                  const SizedBox(height: 30),
                   TextFormField(
                     readOnly: readonly,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return "field required !";
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? "field required !"
+                        : null,
                     controller: price,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: "Price",
                       border: UnderlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -239,12 +222,11 @@ class _EditVehicleState extends State<EditVehicle> {
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          maximumSize: Size(100, 48),
+                          maximumSize: const Size(100, 48),
                         ),
-                        child: Text('EDIT'),
+                        child: const Text('EDIT'),
                       ),
                       SizedBox(width: MediaQuery.of(context).size.width * 0.2),
-
                       ElevatedButton(
                         onPressed: () async {
                           if (formstate.currentState!.validate()) {
@@ -253,19 +235,16 @@ class _EditVehicleState extends State<EditVehicle> {
                             });
                             try {
                               final user = FireCar.auth.currentUser!;
-                              final carId = widget.carId; // ✅ use existing ID
+                              final carId = widget.carId;
 
-                              String imgUrl =
-                                  myvehicle?.img ?? ''; // fallback to old image
+                              String imgUrl = myvehicle?.img ?? '';
                               if (_selectedImage != null) {
-                                // upload new image and get URL
                                 imgUrl = await FireStorage().uploadCarImage(
                                   _selectedImage!,
                                   carId,
                                 );
                               }
 
-                              // update existing car
                               await FirebaseFirestore.instance
                                   .collection('users')
                                   .doc(user.uid)
@@ -288,12 +267,7 @@ class _EditVehicleState extends State<EditVehicle> {
                                     'status': status.text.isNotEmpty
                                         ? status.text
                                         : myvehicle?.status,
-                                    'img': _selectedImage != null
-                                        ? await FireStorage().uploadCarImage(
-                                            _selectedImage!,
-                                            carId,
-                                          )
-                                        : myvehicle?.img,
+                                    'img': imgUrl,
                                   });
 
                               Navigator.pushReplacement(
@@ -302,17 +276,12 @@ class _EditVehicleState extends State<EditVehicle> {
                                   builder: (context) => const AvaiableCars(),
                                 ),
                               );
-
-                              print('Car updated successfully -----------');
                             } catch (e) {
                               print('Error while updating car ======> $e');
                             }
                           }
-                          setState(() {
-                            readonly = false;
-                          });
                         },
-                        child: Text('SAVE'),
+                        child: const Text('SAVE'),
                       ),
                     ],
                   ),
