@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +13,7 @@ class RentedCars extends StatefulWidget {
 }
 
 class _RentedCarsState extends State<RentedCars> {
-  String search = ''; // holds the search text
+  String search = '';
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +27,6 @@ class _RentedCarsState extends State<RentedCars> {
             ),
             onChanged: (value) {
               setState(() {
-                // ✅ trim spaces and lowercase input
                 search = value.trim().toLowerCase();
               });
             },
@@ -45,7 +43,6 @@ class _RentedCarsState extends State<RentedCars> {
         ),
       ),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 20),
           Expanded(
@@ -54,7 +51,7 @@ class _RentedCarsState extends State<RentedCars> {
                   .collection('users')
                   .doc(FirebaseAuth.instance.currentUser!.uid)
                   .collection('cars')
-                  .where('avaiableIn', isNotEqualTo: 0) // rented cars
+                  .where('avaiableIn', isNotEqualTo: 0)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -71,7 +68,6 @@ class _RentedCarsState extends State<RentedCars> {
                   itemBuilder: (context, index) {
                     final car = cars[index].data() as Map<String, dynamic>;
 
-                    // ✅ Always convert fields to string
                     final nameAndYear =
                         car['NameAndYear']?.toString().toLowerCase().trim() ??
                         '';
@@ -84,18 +80,12 @@ class _RentedCarsState extends State<RentedCars> {
                     final year =
                         car['year']?.toString().toLowerCase().trim() ?? '';
 
-                    // If search is empty, show all cars
-                    if (search.isEmpty) {
-                      return buildCarCard(car);
-                    }
-
-                    // ✅ Flexible search across multiple fields
-                    if (nameAndYear.contains(search) ||
+                    if (search.isEmpty ||
+                        nameAndYear.contains(search) ||
                         vehicleName.contains(search) ||
                         year.contains(search)) {
                       return buildCarCard(car);
                     }
-
                     return const SizedBox.shrink();
                   },
                 );
@@ -107,7 +97,6 @@ class _RentedCarsState extends State<RentedCars> {
     );
   }
 
-  /// Helper method to build the car card UI
   Widget buildCarCard(Map<String, dynamic> car) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -125,22 +114,15 @@ class _RentedCarsState extends State<RentedCars> {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text("Make Available"),
-                  content: const Text(
-                    "Do you want to mark this car as available again?",
-                  ),
+                  title: const Text("Car Options"),
+                  content: const Text("Choose an action for this car:"),
                   actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("Cancel"),
-                    ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                       ),
                       onPressed: () async {
                         try {
-                          // ✅ Reset availability in user’s subcollection
                           await FirebaseFirestore.instance
                               .collection('users')
                               .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -149,10 +131,9 @@ class _RentedCarsState extends State<RentedCars> {
                               .update({
                                 'avaiableIn': 0,
                                 'status': 'Available',
-                                'rentedAt': null, // optional: clear rentedAt
+                                'rentedAt': null,
                               });
 
-                          // ✅ Reset in global cars collection too
                           await FirebaseFirestore.instance
                               .collection('cars')
                               .doc(car['id'])
@@ -174,7 +155,94 @@ class _RentedCarsState extends State<RentedCars> {
                         }
                         Navigator.pop(context);
                       },
-                      child: const Text("Confirm"),
+                      child: const Text("Make Available"),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        final TextEditingController daysController =
+                            TextEditingController();
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text("Prolong Rent"),
+                            content: TextField(
+                              controller: daysController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: "Enter extra days",
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("Cancel"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  final extraDays =
+                                      int.tryParse(
+                                        daysController.text.trim(),
+                                      ) ??
+                                      0;
+                                  if (extraDays > 0) {
+                                    try {
+                                      final newDays =
+                                          (car['avaiableIn'] as int) +
+                                          extraDays;
+
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(
+                                            FirebaseAuth
+                                                .instance
+                                                .currentUser!
+                                                .uid,
+                                          )
+                                          .collection('cars')
+                                          .doc(car['id'])
+                                          .update({
+                                            'avaiableIn': newDays,
+                                            'status': 'Rented',
+                                          });
+
+                                      await FirebaseFirestore.instance
+                                          .collection('cars')
+                                          .doc(car['id'])
+                                          .update({
+                                            'avaiableIn': newDays,
+                                            'status': 'Rented',
+                                          });
+
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            "Rent prolonged by $extraDays days",
+                                          ),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(content: Text("Error: $e")),
+                                      );
+                                    }
+                                  }
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("Confirm"),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      child: const Text("Prolong Rent"),
                     ),
                   ],
                 ),
@@ -225,9 +293,8 @@ class _RentedCarsState extends State<RentedCars> {
                         Row(
                           children: [
                             Text(car['price'] ?? ''),
-                            Spacer(),
+                            const Spacer(),
                             Text(
-                              // 🔑 Convert price to int and multiply by days
                               "Total: ${(int.tryParse(car['price'].toString()) ?? 0) * (car['avaiableIn'] as int)} DA",
                               style: const TextStyle(
                                 color: Colors.blue,
@@ -267,7 +334,7 @@ class _RentedCarsState extends State<RentedCars> {
 class CountdownTimer extends StatefulWidget {
   final DateTime rentedAt;
   final int days;
-  final String carId; // ✅ pass the car id so we can update Firestore
+  final String carId;
 
   const CountdownTimer({
     super.key,
@@ -308,11 +375,26 @@ class _CountdownTimerState extends State<CountdownTimer> {
               .collection('cars')
               .doc(widget.carId)
               .update({'avaiableIn': 0, 'status': 'Available'});
+
+          await FirebaseFirestore.instance
+              .collection('cars')
+              .doc(widget.carId)
+              .update({'avaiableIn': 0, 'status': 'Available'});
         } catch (e) {
           debugPrint("Error updating car availability: $e");
         }
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant CountdownTimer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 🔑 If days change (rent prolonged), recalculate endTime
+    if (oldWidget.days != widget.days) {
+      endTime = widget.rentedAt.add(Duration(days: widget.days));
+      remaining = endTime.difference(DateTime.now());
+    }
   }
 
   @override
@@ -325,9 +407,10 @@ class _CountdownTimerState extends State<CountdownTimer> {
   Widget build(BuildContext context) {
     final days = remaining.inDays;
     final hours = remaining.inHours % 24;
+    final minutes = remaining.inMinutes % 60;
 
     return Text(
-      "$days d $hours h left",
+      "$days d $hours h $minutes m left",
       style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
     );
   }

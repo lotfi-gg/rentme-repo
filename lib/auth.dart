@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter/services.dart'; // for SystemNavigator.pop()
 
 class Auth extends StatefulWidget {
   const Auth({super.key});
@@ -14,22 +17,80 @@ class _AuthState extends State<Auth> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  //show error mesaage on UI
   void _showError(String message) {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  //sign in with google
+  // popup dialog for permission denial
+  Future<void> _showPermissionDialog() async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Permission Required"),
+        content: const Text(
+          "You must grant location permission to use this app.\n\n"
+          "If you denied permanently, please enable it in Settings.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+
+              // Re-request permission → triggers system popup if possible
+              LocationPermission permission =
+                  await Geolocator.requestPermission();
+
+              if (permission == LocationPermission.deniedForever) {
+                // Open app settings if permanently denied
+                await Geolocator.openAppSettings();
+              } else if (permission == LocationPermission.denied) {
+                // Still denied → show dialog again
+                _showPermissionDialog();
+              }
+            },
+            child: const Text("OK"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              SystemNavigator.pop(); // exit app
+            },
+            child: const Text("Exit"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // check and request location permission
+  Future<bool> _checkLocationPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      await _showPermissionDialog();
+      return false;
+    }
+
+    return true;
+  }
+
+  // sign in with google
   Future signInWithGoogle() async {
+    bool hasPermission = await _checkLocationPermission();
+    if (!hasPermission) return;
+
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-      if (googleUser == null) {
-        print("Google sign-in cancelled");
-        return;
-      }
+      if (googleUser == null) return;
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
@@ -43,52 +104,98 @@ class _AuthState extends State<Auth> {
         credential,
       );
 
-      print("Signed in as: ${userCredential.user?.email}");
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+            'email': userCredential.user?.email,
+            'latitude': position.latitude,
+            'longitude': position.longitude,
+            'lastLogin': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
 
       if (mounted) {
         Navigator.of(
           context,
         ).pushNamedAndRemoveUntil('homepage', (route) => false);
       }
-
-      print('user signed in');
     } catch (e) {
-      print("Error during Google sign-in: $e");
+      _showError("Error during Google sign-in: $e");
     }
   }
 
   // sign in with email and password
   Future<void> signInWithEmailPassword() async {
     if (!_formKey.currentState!.validate()) return;
+
+    bool hasPermission = await _checkLocationPermission();
+    if (!hasPermission) return;
+
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .update({
+            'latitude': position.latitude,
+            'longitude': position.longitude,
+            'lastLogin': FieldValue.serverTimestamp(),
+          });
+
       if (mounted) {
         Navigator.of(
           context,
         ).pushNamedAndRemoveUntil('homepage', (route) => false);
-        print('user signed in');
       }
     } catch (e) {
       _showError("Login failed: $e");
     }
   }
 
-  //sign up with email and password
+  // sign up with email and password + store lat/long
   Future<void> signUpWithEmailPassword() async {
     if (!_formKey.currentState!.validate()) return;
+
+    bool hasPermission = await _checkLocationPermission();
+    if (!hasPermission) return;
+
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
       );
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+            'email': emailController.text.trim(),
+            'latitude': position.latitude,
+            'longitude': position.longitude,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+
       if (mounted) {
         Navigator.of(
           context,
         ).pushNamedAndRemoveUntil('homepage', (route) => false);
-        print('user signed up');
       }
     } catch (e) {
       _showError("Signup failed: $e");
@@ -128,7 +235,7 @@ class _AuthState extends State<Auth> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   TextFormField(
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -143,51 +250,47 @@ class _AuthState extends State<Auth> {
                     controller: passwordController,
                     decoration: InputDecoration(
                       labelText: 'Password',
-        
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
                       signInWithEmailPassword();
                     },
                     style: ElevatedButton.styleFrom(
-                      minimumSize: Size(double.infinity, 48),
+                      minimumSize: const Size(double.infinity, 48),
                     ),
-                    child: Text('LOGIN'),
+                    child: const Text('LOGIN'),
                   ),
-        
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
                       signUpWithEmailPassword();
                     },
                     style: ElevatedButton.styleFrom(
-                      minimumSize: Size(double.infinity, 48),
+                      minimumSize: const Size(double.infinity, 48),
                     ),
-                    child: Text('SIGN UP'),
+                    child: const Text('SIGN UP'),
                   ),
-        
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
                       signInWithGoogle();
                     },
                     style: ElevatedButton.styleFrom(
-                      minimumSize: Size(double.infinity, 48),
+                      minimumSize: const Size(double.infinity, 48),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('LOGIN WITH GOOGLE'),
-                        SizedBox(width: 8),
+                        const Text('LOGIN WITH GOOGLE'),
+                        const SizedBox(width: 8),
                         Image.asset(
                           'images/google logo.jpg',
                           width: 40,
-        
                           fit: BoxFit.contain,
                         ),
                       ],

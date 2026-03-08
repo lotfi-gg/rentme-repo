@@ -32,20 +32,22 @@ class _HomePageState extends State<HomePage> {
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .get()
         .then((doc) {
-          if (doc.exists) {
-            setState(() {
-              me = ChatUser.fromJson(doc.data()!);
-            });
-          }
+      if (doc.exists) {
+        setState(() {
+          me = ChatUser.fromJson(doc.data()!);
         });
+      }
+    });
   }
 
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     const p = 0.017453292519943295; // pi/180
-    final a =
-        0.5 -
+    final a = 0.5 -
         cos((lat2 - lat1) * p) / 2 +
-        cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
+        cos(lat1 * p) *
+            cos(lat2 * p) *
+            (1 - cos((lon2 - lon1) * p)) /
+            2;
     return 12742 * asin(sqrt(a)); // distance in km
   }
 
@@ -61,7 +63,7 @@ class _HomePageState extends State<HomePage> {
             child: FloatingActionButton.extended(
               heroTag: "nearbyBtn",
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadiusGeometry.circular(30),
+                borderRadius: BorderRadius.circular(30),
               ),
               onPressed: () {
                 setState(() {
@@ -82,7 +84,7 @@ class _HomePageState extends State<HomePage> {
                   child: FloatingActionButton.extended(
                     heroTag: "createBtn",
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadiusGeometry.circular(30),
+                      borderRadius: BorderRadius.circular(30),
                     ),
                     onPressed: () {
                       Navigator.push(
@@ -100,9 +102,9 @@ class _HomePageState extends State<HomePage> {
                   width: MediaQuery.of(context).size.width * 0.3,
                   child: SpeedDial(
                     heroTag: "searchBtn",
-                    icon: Icons.search, // main icon
+                    icon: Icons.search,
                     label: const Text('Search By'),
-                    activeIcon: Icons.close, // icon when expanded
+                    activeIcon: Icons.close,
                     spacing: 10,
                     overlayColor: Colors.black,
                     overlayOpacity: 0.3,
@@ -139,31 +141,33 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                         const SizedBox(height: 16),
 
-                                        // 🔹 Country dropdown
+                                        // Country dropdown
                                         StreamBuilder<QuerySnapshot>(
                                           stream: FirebaseFirestore.instance
                                               .collection('users')
                                               .snapshots(),
                                           builder: (context, snapshot) {
-                                            if (!snapshot.hasData)
+                                            if (!snapshot.hasData) {
                                               return const CircularProgressIndicator();
-                                            final countries = snapshot
-                                                .data!
-                                                .docs
-                                                .map(
-                                                  (doc) =>
-                                                      doc['country']
-                                                          ?.toString() ??
-                                                      '',
-                                                )
+                                            }
+                                            final countries = snapshot.data!.docs
+                                                .map((doc) {
+                                                  final data = doc.data()
+                                                      as Map<String, dynamic>;
+                                                  return data.containsKey(
+                                                          'country')
+                                                      ? data['country']
+                                                          .toString()
+                                                      : '';
+                                                })
                                                 .where((c) => c.isNotEmpty)
                                                 .toSet()
                                                 .toList();
 
                                             return DropdownButtonFormField<
-                                              String
-                                            >(
-                                              decoration: const InputDecoration(
+                                                String>(
+                                              decoration:
+                                                  const InputDecoration(
                                                 labelText: "Country",
                                               ),
                                               value: selectedCountry,
@@ -188,39 +192,41 @@ class _HomePageState extends State<HomePage> {
 
                                         const SizedBox(height: 12),
 
-                                        // 🔹 Province dropdown (filtered by country)
+                                        // Province dropdown
                                         if (selectedCountry != null)
                                           StreamBuilder<QuerySnapshot>(
                                             stream: FirebaseFirestore.instance
                                                 .collection('users')
-                                                .where(
-                                                  'country',
-                                                  isEqualTo: selectedCountry,
-                                                )
+                                                .where('country',
+                                                    isEqualTo:
+                                                        selectedCountry)
                                                 .snapshots(),
                                             builder: (context, snapshot) {
-                                              if (!snapshot.hasData)
+                                              if (!snapshot.hasData) {
                                                 return const CircularProgressIndicator();
+                                              }
                                               final provinces = snapshot
-                                                  .data!
-                                                  .docs
-                                                  .map(
-                                                    (doc) =>
-                                                        doc['province']
-                                                            ?.toString() ??
-                                                        '',
-                                                  )
+                                                  .data!.docs
+                                                  .map((doc) {
+                                                    final data = doc.data()
+                                                        as Map<String,
+                                                            dynamic>;
+                                                    return data.containsKey(
+                                                            'province')
+                                                        ? data['province']
+                                                            .toString()
+                                                        : '';
+                                                  })
                                                   .where((p) => p.isNotEmpty)
                                                   .toSet()
                                                   .toList();
 
                                               return DropdownButtonFormField<
-                                                String
-                                              >(
+                                                  String>(
                                                 decoration:
                                                     const InputDecoration(
-                                                      labelText: "Province",
-                                                    ),
+                                                  labelText: "Province",
+                                                ),
                                                 value: selectedProvince,
                                                 items: provinces
                                                     .map(
@@ -242,43 +248,44 @@ class _HomePageState extends State<HomePage> {
 
                                         const SizedBox(height: 12),
 
-                                        // 🔹 Townhall dropdown (filtered by province)
+                                        // Townhall dropdown
                                         if (selectedProvince != null)
                                           StreamBuilder<QuerySnapshot>(
                                             stream: FirebaseFirestore.instance
                                                 .collection('users')
-                                                .where(
-                                                  'country',
-                                                  isEqualTo: selectedCountry,
-                                                )
-                                                .where(
-                                                  'province',
-                                                  isEqualTo: selectedProvince,
-                                                )
+                                                .where('country',
+                                                    isEqualTo:
+                                                        selectedCountry)
+                                                .where('province',
+                                                    isEqualTo:
+                                                        selectedProvince)
                                                 .snapshots(),
                                             builder: (context, snapshot) {
-                                              if (!snapshot.hasData)
+                                              if (!snapshot.hasData) {
                                                 return const CircularProgressIndicator();
+                                              }
                                               final townhalls = snapshot
-                                                  .data!
-                                                  .docs
-                                                  .map(
-                                                    (doc) =>
-                                                        doc['townhall']
-                                                            ?.toString() ??
-                                                        '',
-                                                  )
+                                                  .data!.docs
+                                                  .map((doc) {
+                                                    final data = doc.data()
+                                                        as Map<String,
+                                                            dynamic>;
+                                                    return data.containsKey(
+                                                            'townhall')
+                                                        ? data['townhall']
+                                                            .toString()
+                                                        : '';
+                                                  })
                                                   .where((t) => t.isNotEmpty)
                                                   .toSet()
                                                   .toList();
 
                                               return DropdownButtonFormField<
-                                                String
-                                              >(
+                                                  String>(
                                                 decoration:
                                                     const InputDecoration(
-                                                      labelText: "Townhall",
-                                                    ),
+                                                  labelText: "Townhall",
+                                                ),
                                                 value: selectedTownhall,
                                                 items: townhalls
                                                     .map(
@@ -307,12 +314,10 @@ class _HomePageState extends State<HomePage> {
                                               MaterialPageRoute(
                                                 builder: (_) =>
                                                     SearchResultsPage(
-                                                      country: selectedCountry,
-                                                      province:
-                                                          selectedProvince,
-                                                      townhall:
-                                                          selectedTownhall,
-                                                    ),
+                                                  country: selectedCountry,
+                                                  province: selectedProvince,
+                                                  townhall: selectedTownhall,
+                                                ),
                                               ),
                                             );
                                           },
@@ -337,8 +342,6 @@ class _HomePageState extends State<HomePage> {
                               builder: (context) => const SearchByCar(),
                             ),
                           );
-                          // TODO: implement search by car logic
-                          print("Search by Car clicked");
                         },
                       ),
                     ],
@@ -352,12 +355,14 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             onPressed: () async {
               GoogleSignIn googleSignIn = GoogleSignIn();
-              googleSignIn.signOut();
+              await googleSignIn.signOut();
               await FirebaseAuth.instance.signOut();
+
+              if (!mounted) return; // ✅ Prevent using context if widget is gone
+
               Navigator.of(
                 context,
               ).pushNamedAndRemoveUntil('auth', (route) => false);
-              print('user signed out');
             },
             icon: const Icon(Iconsax.logout),
             iconSize: 25,
@@ -370,7 +375,9 @@ class _HomePageState extends State<HomePage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => MyProfile()),
+                      MaterialPageRoute(
+                        builder: (context) => const MyProfile(),
+                      ),
                     );
                   },
                   child: const CircleAvatar(
@@ -421,9 +428,8 @@ class _HomePageState extends State<HomePage> {
             return dist < 15; // threshold in km
           }).toList();
 
-          // ✅ FIX: Only show "No nearby agencies" when in nearby mode
           if (!randomMode && nearbyUsers.isEmpty) {
-            return const Center(child: Text("No nearby agencies within 10 km"));
+            return const Center(child: Text("No nearby agencies within 15 km"));
           }
 
           return randomMode
@@ -434,7 +440,6 @@ class _HomePageState extends State<HomePage> {
                   child: ListView.builder(
                     itemCount: users.length,
                     itemBuilder: (context, index) {
-                      // 🔑 Shuffle users before displaying
                       final shuffledUsers = [...users]..shuffle();
                       final user = shuffledUsers[index];
                       return Padding(
@@ -491,7 +496,7 @@ class _HomePageState extends State<HomePage> {
                                         Text(user.agencyname ?? "No agency"),
                                         const SizedBox(height: 8),
                                         Text(
-                                          "${user.province} / ${user.townhall}",
+                                          "${user.province ?? ''} / ${user.townhall ?? ''}",
                                         ),
                                         const SizedBox(height: 8),
                                         const Text("Available Vehicles: 12345"),
@@ -531,7 +536,7 @@ class _HomePageState extends State<HomePage> {
                             : const Icon(Icons.location_city),
                         title: Text(user.agencyname ?? "No agency"),
                         subtitle: Text(
-                          "${user.province} / ${user.townhall}\n${dist.toStringAsFixed(2)} km away",
+                          "${user.province ?? ''} / ${user.townhall ?? ''}\n${dist.toStringAsFixed(2)} km away",
                         ),
                         onTap: () {
                           Navigator.push(
