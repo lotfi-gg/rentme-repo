@@ -4,15 +4,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
- import 'package:rentme/firebase/fire_auth.dart';
+import 'package:rentme/firebase/fire_auth.dart';
 import 'package:rentme/firebase/fire_storage.dart';
 import 'package:rentme/home_page.dart';
 import 'package:rentme/models/user_model.dart';
 import 'package:rentme/my_vehicles.dart';
 
 class MyProfile extends StatefulWidget {
-   
-  const MyProfile({super.key });
+  const MyProfile({super.key});
 
   @override
   State<MyProfile> createState() => _MyProfileState();
@@ -170,20 +169,57 @@ class _MyProfileState extends State<MyProfile> {
                       right: -5,
                       child: IconButton.filled(
                         onPressed: () async {
-                          ImagePicker imagePicker = ImagePicker();
-                          XFile? image = await imagePicker.pickImage(
-                            source: ImageSource.gallery,
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (ctx) {
+                              return SafeArea(
+                                child: Wrap(
+                                  children: [
+                                    ListTile(
+                                      leading: const Icon(Icons.photo_library),
+                                      title: const Text('Choose from Gallery'),
+                                      onTap: () async {
+                                        Navigator.pop(ctx);
+                                        final image = await ImagePicker()
+                                            .pickImage(
+                                              source: ImageSource.gallery,
+                                            );
+                                        if (image != null) {
+                                          setState(() {
+                                            _img = image.path;
+                                          });
+                                          FireStorage().updateprofilepicture(
+                                            file: File(image.path),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.camera_alt),
+                                      title: const Text('Take a Photo'),
+                                      onTap: () async {
+                                        Navigator.pop(ctx);
+                                        final image = await ImagePicker()
+                                            .pickImage(
+                                              source: ImageSource.camera,
+                                            );
+                                        if (image != null) {
+                                          setState(() {
+                                            _img = image.path;
+                                          });
+                                          FireStorage().updateprofilepicture(
+                                            file: File(image.path),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           );
-                          if (image != null) {
-                            setState(() {
-                              _img = image.path;
-                            });
-                            FireStorage().updateprofilepicture(
-                              file: File(image.path),
-                            );
-                          }
                         },
-                        icon: Icon(Iconsax.edit),
+                        icon: const Icon(Iconsax.edit),
                       ),
                     ),
                   ],
