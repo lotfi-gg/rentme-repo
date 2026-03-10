@@ -170,7 +170,7 @@ class _HomePageState extends State<HomePage> {
                                                   const InputDecoration(
                                                 labelText: "Country",
                                               ),
-                                              value: selectedCountry,
+                                              initialValue: selectedCountry,
                                               items: countries
                                                   .map(
                                                     (c) => DropdownMenuItem(
@@ -227,7 +227,7 @@ class _HomePageState extends State<HomePage> {
                                                     const InputDecoration(
                                                   labelText: "Province",
                                                 ),
-                                                value: selectedProvince,
+                                                initialValue: selectedProvince,
                                                 items: provinces
                                                     .map(
                                                       (p) => DropdownMenuItem(
@@ -286,7 +286,7 @@ class _HomePageState extends State<HomePage> {
                                                     const InputDecoration(
                                                   labelText: "Townhall",
                                                 ),
-                                                value: selectedTownhall,
+                                                initialValue: selectedTownhall,
                                                 items: townhalls
                                                     .map(
                                                       (t) => DropdownMenuItem(

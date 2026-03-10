@@ -7,9 +7,8 @@ import 'package:rentme/models/user_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PublicProfile extends StatefulWidget {
-   
   final ChatUser user;
-  const PublicProfile({super.key, required this.user, });
+  const PublicProfile({super.key, required this.user});
 
   @override
   State<PublicProfile> createState() => _PublicProfileState();
@@ -423,30 +422,35 @@ class _PublicProfileState extends State<PublicProfile> {
 
                 final avgRating =
                     ratings.reduce((a, b) => a + b) / ratings.length;
-                myRatings = ratings.length.toString();
 
-                return InkWell(
-                  onTap: () {
-                    _showRatingDialog(context);
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(5, (index) {
-                      return Icon(
-                        index < avgRating.round()
-                            ? Icons.star
-                            : Icons.star_border,
-                        color: Colors.amber,
-                        size: 30,
-                      );
-                    }),
-                  ),
+                return Column(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        _showRatingDialog(context);
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (index) {
+                          return Icon(
+                            index < avgRating.round()
+                                ? Icons.star
+                                : Icons.star_border,
+                            color: Colors.amber,
+                            size: 30,
+                          );
+                        }),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Ratings: ${ratings.length}',
+                    ), // 👈 show number of ratings directly
+                  ],
                 );
               },
             ),
 
-            SizedBox(height: 10),
-            Text('Ratings: $myRatings'),
             SizedBox(height: 20),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
