@@ -19,6 +19,7 @@ class _AddVehicleState extends State<AddVehicle> {
   TextEditingController transmission = TextEditingController();
   TextEditingController price = TextEditingController();
   TextEditingController status = TextEditingController();
+  TextEditingController currancy = TextEditingController();
 
   File? _selectedImage;
   Future<void> _pickImage() async {
@@ -106,15 +107,46 @@ class _AddVehicleState extends State<AddVehicle> {
                     },
                   ),
                   const SizedBox(height: 30),
-                  TextFormField(
-                    controller: price,
-                    validator: (value) => value == null || value.trim().isEmpty
-                        ? "field required !"
-                        : null,
-                    decoration: const InputDecoration(
-                      hintText: "Price in Local Currency",
-                      border: UnderlineInputBorder(),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2, // give more space to price input
+                        child: TextFormField(
+                          controller: price,
+                          validator: (value) =>
+                              value == null || value.trim().isEmpty
+                              ? "field required !"
+                              : null,
+                          decoration: const InputDecoration(
+                            hintText: "Price in Local Currency",
+                            border: UnderlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 12), // spacing between fields
+                      Expanded(
+                        flex: 1, // less space for currency dropdown
+                        child: DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                            labelText: "Currency",
+                            border: UnderlineInputBorder(),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: "DZD", child: Text("DZD")),
+                            DropdownMenuItem(value: "USD", child: Text("USD")),
+                            DropdownMenuItem(value: "EUR", child: Text("EUR")),
+                            DropdownMenuItem(value: "GBP", child: Text("GBP")),
+                          ],
+                          onChanged: (val) {
+                            currancy.text = val ?? '';
+                          },
+                          validator: (value) => value == null || value.isEmpty
+                              ? "Select currency!"
+                              : null,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 30),
                   ElevatedButton(
@@ -152,6 +184,7 @@ class _AddVehicleState extends State<AddVehicle> {
                             transmission.text,
                             price.text,
                             imgUrl,
+                            currancy.text,
                           );
 
                           // Save to global cars collection
@@ -171,6 +204,7 @@ class _AddVehicleState extends State<AddVehicle> {
                                     : status.text.trim(),
                                 'avaiableIn': 0, // ✅ initialize
                                 'rentedAt': null, // ✅ keep consistent
+                                'currancy': currancy.text,
                               });
 
                           Navigator.pushReplacement(

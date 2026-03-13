@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:rentme/add_vehicle.dart';
 import 'package:rentme/edit_vehicle.dart';
@@ -22,6 +23,9 @@ class _AvaiableCarsState extends State<AvaiableCars> {
         width: 150,
         child: FloatingActionButton.extended(
           onPressed: () {
+            FirebaseMessaging.instance.getToken().then((value) {
+              print('the FCM registration token ====> ${value}');
+            });
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AddVehicle()),
@@ -133,6 +137,7 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                 borderRadius: BorderRadius.circular(25),
                 onLongPress: () {
                   showDialog(
+                    barrierDismissible: false,
                     context: context,
                     builder: (context) {
                       int? selectedDays;

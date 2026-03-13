@@ -21,6 +21,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  bool isCreateBtn = true;
   bool randomMode = true;
   ChatUser? me;
 
@@ -32,22 +33,20 @@ class _HomePageState extends State<HomePage> {
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .get()
         .then((doc) {
-      if (doc.exists) {
-        setState(() {
-          me = ChatUser.fromJson(doc.data()!);
+          if (doc.exists) {
+            setState(() {
+              me = ChatUser.fromJson(doc.data()!);
+            });
+          }
         });
-      }
-    });
   }
 
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     const p = 0.017453292519943295; // pi/180
-    final a = 0.5 -
+    final a =
+        0.5 -
         cos((lat2 - lat1) * p) / 2 +
-        cos(lat1 * p) *
-            cos(lat2 * p) *
-            (1 - cos((lon2 - lon1) * p)) /
-            2;
+        cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
     return 12742 * asin(sqrt(a)); // distance in km
   }
 
@@ -78,29 +77,42 @@ class _HomePageState extends State<HomePage> {
           ),
           SizedBox(width: MediaQuery.of(context).size.width * 0.2),
 
-          (me?.isFirstTime ?? true)
+          isCreateBtn
               ? SizedBox(
                   width: MediaQuery.of(context).size.width * 0.3,
-                  child: FloatingActionButton.extended(
-                    heroTag: "createBtn",
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CreatePage(),
-                        ),
-                      );
+                  child: GestureDetector(
+                    onLongPress: () {
+                      setState(() {
+                        isCreateBtn = !isCreateBtn;
+                      });
                     },
-                    icon: const Icon(Icons.car_rental_sharp),
-                    label: const Text('CREATE'),
+                    child: FloatingActionButton.extended(
+                      heroTag: "createBtn",
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CreatePage(),
+                          ),
+                        );
+                      },
+
+                      icon: const Icon(Icons.car_rental_sharp),
+                      label: const Text('CREATE'),
+                    ),
                   ),
                 )
               : SizedBox(
                   width: MediaQuery.of(context).size.width * 0.3,
                   child: SpeedDial(
+                    onClose: () {
+                      setState(() {
+                        isCreateBtn = !isCreateBtn;
+                      });
+                    },
                     heroTag: "searchBtn",
                     icon: Icons.search,
                     label: const Text('Search By'),
@@ -150,14 +162,21 @@ class _HomePageState extends State<HomePage> {
                                             if (!snapshot.hasData) {
                                               return const CircularProgressIndicator();
                                             }
-                                            final countries = snapshot.data!.docs
+                                            final countries = snapshot
+                                                .data!
+                                                .docs
                                                 .map((doc) {
-                                                  final data = doc.data()
-                                                      as Map<String, dynamic>;
+                                                  final data =
+                                                      doc.data()
+                                                          as Map<
+                                                            String,
+                                                            dynamic
+                                                          >;
                                                   return data.containsKey(
-                                                          'country')
+                                                        'country',
+                                                      )
                                                       ? data['country']
-                                                          .toString()
+                                                            .toString()
                                                       : '';
                                                 })
                                                 .where((c) => c.isNotEmpty)
@@ -165,9 +184,9 @@ class _HomePageState extends State<HomePage> {
                                                 .toList();
 
                                             return DropdownButtonFormField<
-                                                String>(
-                                              decoration:
-                                                  const InputDecoration(
+                                              String
+                                            >(
+                                              decoration: const InputDecoration(
                                                 labelText: "Country",
                                               ),
                                               initialValue: selectedCountry,
@@ -197,24 +216,30 @@ class _HomePageState extends State<HomePage> {
                                           StreamBuilder<QuerySnapshot>(
                                             stream: FirebaseFirestore.instance
                                                 .collection('users')
-                                                .where('country',
-                                                    isEqualTo:
-                                                        selectedCountry)
+                                                .where(
+                                                  'country',
+                                                  isEqualTo: selectedCountry,
+                                                )
                                                 .snapshots(),
                                             builder: (context, snapshot) {
                                               if (!snapshot.hasData) {
                                                 return const CircularProgressIndicator();
                                               }
                                               final provinces = snapshot
-                                                  .data!.docs
+                                                  .data!
+                                                  .docs
                                                   .map((doc) {
-                                                    final data = doc.data()
-                                                        as Map<String,
-                                                            dynamic>;
+                                                    final data =
+                                                        doc.data()
+                                                            as Map<
+                                                              String,
+                                                              dynamic
+                                                            >;
                                                     return data.containsKey(
-                                                            'province')
+                                                          'province',
+                                                        )
                                                         ? data['province']
-                                                            .toString()
+                                                              .toString()
                                                         : '';
                                                   })
                                                   .where((p) => p.isNotEmpty)
@@ -222,11 +247,12 @@ class _HomePageState extends State<HomePage> {
                                                   .toList();
 
                                               return DropdownButtonFormField<
-                                                  String>(
+                                                String
+                                              >(
                                                 decoration:
                                                     const InputDecoration(
-                                                  labelText: "Province",
-                                                ),
+                                                      labelText: "Province",
+                                                    ),
                                                 initialValue: selectedProvince,
                                                 items: provinces
                                                     .map(
@@ -253,27 +279,34 @@ class _HomePageState extends State<HomePage> {
                                           StreamBuilder<QuerySnapshot>(
                                             stream: FirebaseFirestore.instance
                                                 .collection('users')
-                                                .where('country',
-                                                    isEqualTo:
-                                                        selectedCountry)
-                                                .where('province',
-                                                    isEqualTo:
-                                                        selectedProvince)
+                                                .where(
+                                                  'country',
+                                                  isEqualTo: selectedCountry,
+                                                )
+                                                .where(
+                                                  'province',
+                                                  isEqualTo: selectedProvince,
+                                                )
                                                 .snapshots(),
                                             builder: (context, snapshot) {
                                               if (!snapshot.hasData) {
                                                 return const CircularProgressIndicator();
                                               }
                                               final townhalls = snapshot
-                                                  .data!.docs
+                                                  .data!
+                                                  .docs
                                                   .map((doc) {
-                                                    final data = doc.data()
-                                                        as Map<String,
-                                                            dynamic>;
+                                                    final data =
+                                                        doc.data()
+                                                            as Map<
+                                                              String,
+                                                              dynamic
+                                                            >;
                                                     return data.containsKey(
-                                                            'townhall')
+                                                          'townhall',
+                                                        )
                                                         ? data['townhall']
-                                                            .toString()
+                                                              .toString()
                                                         : '';
                                                   })
                                                   .where((t) => t.isNotEmpty)
@@ -281,11 +314,12 @@ class _HomePageState extends State<HomePage> {
                                                   .toList();
 
                                               return DropdownButtonFormField<
-                                                  String>(
+                                                String
+                                              >(
                                                 decoration:
                                                     const InputDecoration(
-                                                  labelText: "Townhall",
-                                                ),
+                                                      labelText: "Townhall",
+                                                    ),
                                                 initialValue: selectedTownhall,
                                                 items: townhalls
                                                     .map(
@@ -314,10 +348,12 @@ class _HomePageState extends State<HomePage> {
                                               MaterialPageRoute(
                                                 builder: (_) =>
                                                     SearchResultsPage(
-                                                  country: selectedCountry,
-                                                  province: selectedProvince,
-                                                  townhall: selectedTownhall,
-                                                ),
+                                                      country: selectedCountry,
+                                                      province:
+                                                          selectedProvince,
+                                                      townhall:
+                                                          selectedTownhall,
+                                                    ),
                                               ),
                                             );
                                           },

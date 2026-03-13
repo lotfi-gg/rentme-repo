@@ -121,42 +121,95 @@ class _RentedCarsState extends State<RentedCars> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                       ),
-                      onPressed: () async {
-                        try {
-                          await FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(FirebaseAuth.instance.currentUser!.uid)
-                              .collection('cars')
-                              .doc(car['id'])
-                              .update({
-                                'avaiableIn': 0,
-                                'status': 'Available',
-                                'rentedAt': null,
-                              });
+                      onPressed: () {
+                        final DateTime rentedAt = (car['rentedAt'] as Timestamp)
+                            .toDate();
+                        final DateTime now = DateTime.now();
+                        final int rentedDays = now.difference(rentedAt).inDays;
+                        final int pricePerDay =
+                            int.tryParse(car['price'].toString()) ?? 0;
+                        final int totalPrice = rentedDays * pricePerDay;
 
-                          await FirebaseFirestore.instance
-                              .collection('cars')
-                              .doc(car['id'])
-                              .update({
-                                'avaiableIn': 0,
-                                'status': 'Available',
-                                'rentedAt': null,
-                              });
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Car marked as available"),
+                        // Child dialog (summary)
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (dialogContext) => AlertDialog(
+                            title: const Text("Rental Summary"),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text("Car: ${car['vehiclefullname']}"),
+                                const SizedBox(height: 8),
+                                Text("Rented for: $rentedDays day(s)"),
+                                const SizedBox(height: 8),
+                                Text("Total Price: $totalPrice DA"),
+                              ],
                             ),
-                          );
-                        } catch (e) {
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text("Error: $e")));
-                        }
-                        Navigator.pop(context);
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(
+                                  dialogContext,
+                                ), // closes summary only
+                                child: const Text("Cancel"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  try {
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(
+                                          FirebaseAuth
+                                              .instance
+                                              .currentUser!
+                                              .uid,
+                                        )
+                                        .collection('cars')
+                                        .doc(car['id'])
+                                        .update({
+                                          'avaiableIn': 0,
+                                          'status': 'Available',
+                                          'rentedAt': null,
+                                        });
+
+                                    await FirebaseFirestore.instance
+                                        .collection('cars')
+                                        .doc(car['id'])
+                                        .update({
+                                          'avaiableIn': 0,
+                                          'status': 'Available',
+                                          'rentedAt': null,
+                                        });
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Car marked as available",
+                                        ),
+                                      ),
+                                    );
+                                    Navigator.of(context).pop();
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text("Error: $e")),
+                                    );
+                                  }
+
+                                  // ✅ Close both dialogs (summary + parent)
+                                  Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop();
+                                },
+                                child: const Text("Confirm"),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                       child: const Text("Make Available"),
                     ),
+
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
@@ -355,7 +408,7 @@ class _CountdownTimerState extends State<CountdownTimer> {
   @override
   void initState() {
     super.initState();
-    endTime = widget.rentedAt.add(Duration(days: widget.days));
+    endTime = widget.rentedAt.add(Duration(seconds: widget.days));
     remaining = endTime.difference(DateTime.now());
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
@@ -392,7 +445,7 @@ class _CountdownTimerState extends State<CountdownTimer> {
     super.didUpdateWidget(oldWidget);
     // 🔑 If days change (rent prolonged), recalculate endTime
     if (oldWidget.days != widget.days) {
-      endTime = widget.rentedAt.add(Duration(days: widget.days));
+      endTime = widget.rentedAt.add(Duration(seconds: widget.days));
       remaining = endTime.difference(DateTime.now());
     }
   }
@@ -408,9 +461,10 @@ class _CountdownTimerState extends State<CountdownTimer> {
     final days = remaining.inDays;
     final hours = remaining.inHours % 24;
     final minutes = remaining.inMinutes % 60;
+    final seconds = remaining.inSeconds % 60;
 
     return Text(
-      "$days d $hours h $minutes m left",
+      "$days d $hours h $minutes m $seconds s left",
       style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
     );
   }

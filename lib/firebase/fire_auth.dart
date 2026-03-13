@@ -75,7 +75,9 @@ class FireCar {
     String year,
     String transmission,
     String price,
+
     String img,
+    String currancy,
   ) async {
     User user = auth.currentUser!;
     CarInfo carInfo = CarInfo(
