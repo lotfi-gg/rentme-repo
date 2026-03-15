@@ -22,15 +22,48 @@ class _AddVehicleState extends State<AddVehicle> {
   TextEditingController currancy = TextEditingController();
 
   File? _selectedImage;
-  Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
+  Future<void> _showImageSourceDialog() async {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text("Take Photo"),
+                onTap: () async {
+                  Navigator.of(ctx).pop();
+                  final pickedFile = await ImagePicker().pickImage(
+                    source: ImageSource.camera,
+                  );
+                  if (pickedFile != null) {
+                    setState(() {
+                      _selectedImage = File(pickedFile.path);
+                    });
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text("Choose from Gallery"),
+                onTap: () async {
+                  Navigator.of(ctx).pop();
+                  final pickedFile = await ImagePicker().pickImage(
+                    source: ImageSource.gallery,
+                  );
+                  if (pickedFile != null) {
+                    setState(() {
+                      _selectedImage = File(pickedFile.path);
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
-    }
   }
 
   @override
@@ -63,9 +96,10 @@ class _AddVehicleState extends State<AddVehicle> {
                   ),
                   const SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: _pickImage,
+                    onPressed: _showImageSourceDialog,
                     child: const Text('ADD PHOTO'),
                   ),
+
                   const SizedBox(height: 40),
                   TextFormField(
                     controller: vehiclefullname,
