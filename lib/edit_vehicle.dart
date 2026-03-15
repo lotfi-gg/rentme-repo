@@ -4,7 +4,6 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rentme/avaiable_cars.dart';
 import 'package:rentme/firebase/fire_auth.dart';
@@ -20,7 +19,7 @@ class EditVehicle extends StatefulWidget {
 }
 
 class _EditVehicleState extends State<EditVehicle> {
-  String _img = '';
+  final String _img = '';
   GlobalKey<FormState> formstate = GlobalKey<FormState>();
 
   TextEditingController vehiclefullname = TextEditingController();
@@ -207,11 +206,11 @@ class _EditVehicleState extends State<EditVehicle> {
                                       Navigator.pop(context); // close the sheet
                                       final ImagePicker imagePicker =
                                           ImagePicker();
-                                      final List<XFile>? images =
+                                      final List<XFile> images =
                                           await imagePicker.pickMultiImage();
 
                                       // 👇 If user cancels (no images picked)
-                                      if (images == null || images.isEmpty) {
+                                      if (images.isEmpty) {
                                         if (!mounted) return;
                                         AwesomeDialog(
                                           context:
@@ -363,11 +362,11 @@ class _EditVehicleState extends State<EditVehicle> {
                       ElevatedButton(
                         onPressed: () async {
                           final ImagePicker picker = ImagePicker();
-                          final List<XFile>? images = await picker
+                          final List<XFile> images = await picker
                               .pickMultiImage();
 
                           // 👇 If user cancels (no images picked)
-                          if (images == null || images.isEmpty) {
+                          if (images.isEmpty) {
                             if (!mounted) return;
                             AwesomeDialog(
                               context: context,

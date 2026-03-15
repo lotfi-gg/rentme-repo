@@ -148,9 +148,7 @@ class _RentedCarsState extends State<RentedCars> {
                             ),
                             actions: [
                               TextButton(
-                                onPressed: () => Navigator.pop(
-                                  dialogContext,
-                                ), // closes summary only
+                                onPressed: () => Navigator.pop(dialogContext),
                                 child: const Text("Cancel"),
                               ),
                               ElevatedButton(
@@ -188,18 +186,15 @@ class _RentedCarsState extends State<RentedCars> {
                                         ),
                                       ),
                                     );
-                                    Navigator.of(context).pop();
                                   } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(content: Text("Error: $e")),
                                     );
                                   }
 
-                                  // ✅ Close both dialogs (summary + parent)
-                                  Navigator.of(
-                                    context,
-                                    rootNavigator: true,
-                                  ).pop();
+                                  // Close both dialogs safely
+                                  Navigator.pop(dialogContext); // close summary
+                                  Navigator.pop(context); // close parent
                                 },
                                 child: const Text("Confirm"),
                               ),
@@ -215,12 +210,12 @@ class _RentedCarsState extends State<RentedCars> {
                         backgroundColor: Colors.blue,
                       ),
                       onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.pop(context); // close parent first
                         final TextEditingController daysController =
                             TextEditingController();
                         showDialog(
                           context: context,
-                          builder: (context) => AlertDialog(
+                          builder: (dialogContext) => AlertDialog(
                             title: const Text("Prolong Rent"),
                             content: TextField(
                               controller: daysController,
@@ -231,7 +226,7 @@ class _RentedCarsState extends State<RentedCars> {
                             ),
                             actions: [
                               TextButton(
-                                onPressed: () => Navigator.pop(context),
+                                onPressed: () => Navigator.pop(dialogContext),
                                 child: const Text("Cancel"),
                               ),
                               ElevatedButton(
@@ -287,7 +282,8 @@ class _RentedCarsState extends State<RentedCars> {
                                       );
                                     }
                                   }
-                                  Navigator.pop(context);
+                                      Navigator.pop(dialogContext); // close summary
+                                  Navigator.pop(context); // close parent
                                 },
                                 child: const Text("Confirm"),
                               ),
@@ -408,11 +404,15 @@ class _CountdownTimerState extends State<CountdownTimer> {
   @override
   void initState() {
     super.initState();
-    endTime = widget.rentedAt.add(Duration(seconds: widget.days));
+    // days should be treated as days, not seconds
+    endTime = widget.rentedAt.add(Duration(days: widget.days));
     remaining = endTime.difference(DateTime.now());
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
-      if (!mounted) return;
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
       setState(() {
         remaining = endTime.difference(DateTime.now());
       });
@@ -420,19 +420,27 @@ class _CountdownTimerState extends State<CountdownTimer> {
       if (remaining.isNegative) {
         timer.cancel();
 
-        // ✅ Update Firestore when countdown finishes
+        // Update Firestore when countdown finishes
         try {
           await FirebaseFirestore.instance
               .collection('users')
               .doc(FirebaseAuth.instance.currentUser!.uid)
               .collection('cars')
               .doc(widget.carId)
-              .update({'avaiableIn': 0, 'status': 'Available'});
+              .update({
+                'avaiableIn': 0,
+                'status': 'Available',
+                'rentedAt': null,
+              });
 
           await FirebaseFirestore.instance
               .collection('cars')
               .doc(widget.carId)
-              .update({'avaiableIn': 0, 'status': 'Available'});
+              .update({
+                'avaiableIn': 0,
+                'status': 'Available',
+                'rentedAt': null,
+              });
         } catch (e) {
           debugPrint("Error updating car availability: $e");
         }
@@ -443,9 +451,9 @@ class _CountdownTimerState extends State<CountdownTimer> {
   @override
   void didUpdateWidget(covariant CountdownTimer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // 🔑 If days change (rent prolonged), recalculate endTime
+    // If days change (rent prolonged), recalculate endTime
     if (oldWidget.days != widget.days) {
-      endTime = widget.rentedAt.add(Duration(seconds: widget.days));
+      endTime = widget.rentedAt.add(Duration(days: widget.days));
       remaining = endTime.difference(DateTime.now());
     }
   }

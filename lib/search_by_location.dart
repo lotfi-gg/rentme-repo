@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:rentme/models/user_model.dart'; // ChatUser model
 import 'package:rentme/public_profile.dart'; // PublicProfile widget
 
-class SearchResultsPage extends StatelessWidget {
+class SearchByLocation extends StatelessWidget {
   final String? country;
   final String? province;
   final String? townhall;
 
-  const SearchResultsPage({
+  const SearchByLocation({
     super.key,
     this.country,
     this.province,

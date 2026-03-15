@@ -347,7 +347,7 @@ class _HomePageState extends State<HomePage> {
                                               context,
                                               MaterialPageRoute(
                                                 builder: (_) =>
-                                                    SearchResultsPage(
+                                                    SearchByLocation(
                                                       country: selectedCountry,
                                                       province:
                                                           selectedProvince,

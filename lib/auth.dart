@@ -23,7 +23,6 @@ class _AuthState extends State<Auth> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  // popup dialog for permission denial
   Future<void> _showPermissionDialog() async {
     await showDialog(
       context: context,
@@ -38,16 +37,11 @@ class _AuthState extends State<Auth> {
           TextButton(
             onPressed: () async {
               Navigator.of(ctx).pop();
-
-              // Re-request permission → triggers system popup if possible
               LocationPermission permission =
                   await Geolocator.requestPermission();
-
               if (permission == LocationPermission.deniedForever) {
-                // Open app settings if permanently denied
                 await Geolocator.openAppSettings();
               } else if (permission == LocationPermission.denied) {
-                // Still denied → show dialog again
                 _showPermissionDialog();
               }
             },
@@ -65,10 +59,15 @@ class _AuthState extends State<Auth> {
     );
   }
 
-  // check and request location permission
-  Future<bool> _checkLocationPermission() async {
-    LocationPermission permission = await Geolocator.checkPermission();
+  // ✅ Check both permission and GPS service
+  Future<bool> _checkLocationPermissionAndService() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _showError("Location services must be enabled.");
+      return false;
+    }
 
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
       permission = await Geolocator.requestPermission();
@@ -83,9 +82,8 @@ class _AuthState extends State<Auth> {
     return true;
   }
 
-  // sign in with google
   Future signInWithGoogle() async {
-    bool hasPermission = await _checkLocationPermission();
+    bool hasPermission = await _checkLocationPermissionAndService();
     if (!hasPermission) return;
 
     try {
@@ -94,7 +92,6 @@ class _AuthState extends State<Auth> {
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
-
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -128,11 +125,10 @@ class _AuthState extends State<Auth> {
     }
   }
 
-  // sign in with email and password
   Future<void> signInWithEmailPassword() async {
     if (!_formKey.currentState!.validate()) return;
 
-    bool hasPermission = await _checkLocationPermission();
+    bool hasPermission = await _checkLocationPermissionAndService();
     if (!hasPermission) return;
 
     try {
@@ -164,11 +160,10 @@ class _AuthState extends State<Auth> {
     }
   }
 
-  // sign up with email and password + store lat/long
   Future<void> signUpWithEmailPassword() async {
     if (!_formKey.currentState!.validate()) return;
 
-    bool hasPermission = await _checkLocationPermission();
+    bool hasPermission = await _checkLocationPermissionAndService();
     if (!hasPermission) return;
 
     try {
@@ -217,9 +212,8 @@ class _AuthState extends State<Auth> {
                   Image.asset('images/car.jpg', height: 200),
                   TextFormField(
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.isEmpty)
                         return "Email cannot be empty";
-                      }
                       if (!RegExp(
                         r'^[^@]{5,}@[^@]{5,}\.[^@]+$',
                       ).hasMatch(value)) {
@@ -238,12 +232,10 @@ class _AuthState extends State<Auth> {
                   const SizedBox(height: 20),
                   TextFormField(
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.isEmpty)
                         return "Password cannot be empty";
-                      }
-                      if (value.length < 6) {
+                      if (value.length < 6)
                         return "Password must be at least 6 characters";
-                      }
                       return null;
                     },
                     obscureText: true,
@@ -257,9 +249,7 @@ class _AuthState extends State<Auth> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
-                      signInWithEmailPassword();
-                    },
+                    onPressed: signInWithEmailPassword,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 48),
                     ),
@@ -267,9 +257,7 @@ class _AuthState extends State<Auth> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
-                      signUpWithEmailPassword();
-                    },
+                    onPressed: signUpWithEmailPassword,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 48),
                     ),
@@ -277,9 +265,7 @@ class _AuthState extends State<Auth> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
-                      signInWithGoogle();
-                    },
+                    onPressed: signInWithGoogle,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 48),
                     ),

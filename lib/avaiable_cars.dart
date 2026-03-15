@@ -24,7 +24,7 @@ class _AvaiableCarsState extends State<AvaiableCars> {
         child: FloatingActionButton.extended(
           onPressed: () {
             FirebaseMessaging.instance.getToken().then((value) {
-              print('the FCM registration token ====> ${value}');
+              print('the FCM registration token ====> $value');
             });
             Navigator.push(
               context,
