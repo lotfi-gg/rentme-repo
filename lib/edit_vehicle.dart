@@ -190,9 +190,6 @@ class _EditVehicleState extends State<EditVehicle> {
                     children: [
                       ElevatedButton(
                         onPressed: () async {
-                          // 👇 Capture parent context before opening bottom sheet
-                          final parentContext = context;
-
                           showModalBottomSheet(
                             context: context,
                             builder: (BuildContext context) {
@@ -204,125 +201,13 @@ class _EditVehicleState extends State<EditVehicle> {
                                     title: const Text('Pick from Gallery'),
                                     onTap: () async {
                                       Navigator.pop(context); // close the sheet
-                                      final ImagePicker imagePicker =
-                                          ImagePicker();
-                                      final List<XFile> images =
-                                          await imagePicker.pickMultiImage();
-
-                                      // 👇 If user cancels (no images picked)
-                                      if (images.isEmpty) {
-                                        if (!mounted) return;
-                                        AwesomeDialog(
-                                          context:
-                                              parentContext, // 👈 use parent context
-                                          dialogType: DialogType.info,
-                                          animType: AnimType.scale,
-                                          title: 'No Images Selected',
-                                          desc: 'You did not pick any images.',
-                                          btnOkOnPress: () {},
-                                        ).show();
-                                        return;
-                                      }
-
-                                      int existingCount =
-                                          myvehicle?.images?.length ?? 0;
-                                      int remainingSlots = 5 - existingCount;
-
-                                      // 👇 If user picked more than allowed slots
-                                      if (images.length > remainingSlots) {
-                                        if (!mounted) return;
-                                        AwesomeDialog(
-                                          context:
-                                              parentContext, // 👈 use parent context
-                                          dialogType: DialogType.warning,
-                                          animType: AnimType.scale,
-                                          title: 'Too Many Images',
-                                          desc:
-                                              'You can only add $remainingSlots more photo(s). Please reduce your selection.',
-                                          btnOkOnPress: () {},
-                                        ).show();
-                                        return;
-                                      }
-
-                                      // 👇 Upload selected images
-                                      List<String> uploadedUrls = [];
-                                      for (var img in images) {
-                                        File file = File(img.path);
-                                        String url = await FireStorage()
-                                            .uploadCarImage(file, widget.carId);
-                                        uploadedUrls.add(url);
-                                      }
-
-                                      await FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(
-                                            FirebaseAuth
-                                                .instance
-                                                .currentUser!
-                                                .uid,
-                                          )
-                                          .collection('cars')
-                                          .doc(widget.carId)
-                                          .update({
-                                            'images': FieldValue.arrayUnion(
-                                              uploadedUrls,
-                                            ),
-                                          });
-
-                                      if (!mounted) return;
-                                      setState(() {
-                                        _selectedImage = File(
-                                          images.first.path,
-                                        );
-                                      });
-                                    },
-                                  ),
-
-                                  // --- Camera option ---
-                                  ListTile(
-                                    leading: const Icon(Icons.camera_alt),
-                                    title: const Text('Take Photo'),
-                                    onTap: () async {
-                                      Navigator.pop(context); // close the sheet
-                                      final ImagePicker imagePicker =
-                                          ImagePicker();
-                                      final XFile? image = await imagePicker
+                                      final ImagePicker picker = ImagePicker();
+                                      final XFile? image = await picker
                                           .pickImage(
-                                            source: ImageSource.camera,
+                                            source: ImageSource.gallery,
                                           );
 
-                                      if (image == null) {
-                                        if (!mounted) return;
-                                        AwesomeDialog(
-                                          context:
-                                              parentContext, // 👈 use parent context
-                                          dialogType: DialogType.info,
-                                          animType: AnimType.scale,
-                                          title: 'No Photo Taken',
-                                          desc:
-                                              'You did not capture any photo.',
-                                          btnOkOnPress: () {},
-                                        ).show();
-                                        return;
-                                      }
-
-                                      int existingCount =
-                                          myvehicle?.images?.length ?? 0;
-
-                                      if (existingCount >= 5) {
-                                        if (!mounted) return;
-                                        AwesomeDialog(
-                                          context:
-                                              parentContext, // 👈 use parent context
-                                          dialogType: DialogType.warning,
-                                          animType: AnimType.scale,
-                                          title: 'Limit Reached',
-                                          desc:
-                                              'You can only upload 5 photos maximum.',
-                                          btnOkOnPress: () {},
-                                        ).show();
-                                        return;
-                                      }
+                                      if (image == null) return;
 
                                       File file = File(image.path);
                                       String url = await FireStorage()
@@ -338,15 +223,48 @@ class _EditVehicleState extends State<EditVehicle> {
                                           )
                                           .collection('cars')
                                           .doc(widget.carId)
-                                          .update({
-                                            'images': FieldValue.arrayUnion([
-                                              url,
-                                            ]),
-                                          });
+                                          .update({'img': url});
 
-                                      if (!mounted) return;
                                       setState(() {
-                                        _selectedImage = File(image.path);
+                                        _selectedImage = file;
+                                        myvehicle?.img = url;
+                                      });
+                                    },
+                                  ),
+
+                                  // --- Camera option ---
+                                  ListTile(
+                                    leading: const Icon(Icons.camera_alt),
+                                    title: const Text('Take Photo'),
+                                    onTap: () async {
+                                      Navigator.pop(context); // close the sheet
+                                      final ImagePicker picker = ImagePicker();
+                                      final XFile? image = await picker
+                                          .pickImage(
+                                            source: ImageSource.camera,
+                                          );
+
+                                      if (image == null) return;
+
+                                      File file = File(image.path);
+                                      String url = await FireStorage()
+                                          .uploadCarImage(file, widget.carId);
+
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(
+                                            FirebaseAuth
+                                                .instance
+                                                .currentUser!
+                                                .uid,
+                                          )
+                                          .collection('cars')
+                                          .doc(widget.carId)
+                                          .update({'img': url});
+
+                                      setState(() {
+                                        _selectedImage = file;
+                                        myvehicle?.img = url;
                                       });
                                     },
                                   ),
@@ -355,7 +273,7 @@ class _EditVehicleState extends State<EditVehicle> {
                             },
                           );
                         },
-                        child: const Text('Add Photos'),
+                        child: const Text('Edit Photo'),
                       ),
 
                       const SizedBox(width: 10),

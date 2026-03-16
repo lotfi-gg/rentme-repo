@@ -212,8 +212,9 @@ class _AuthState extends State<Auth> {
                   Image.asset('images/car.jpg', height: 200),
                   TextFormField(
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return "Email cannot be empty";
+                      }
                       if (!RegExp(
                         r'^[^@]{5,}@[^@]{5,}\.[^@]+$',
                       ).hasMatch(value)) {
@@ -232,10 +233,12 @@ class _AuthState extends State<Auth> {
                   const SizedBox(height: 20),
                   TextFormField(
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return "Password cannot be empty";
-                      if (value.length < 6)
+                      }
+                      if (value.length < 6) {
                         return "Password must be at least 6 characters";
+                      }
                       return null;
                     },
                     obscureText: true,
