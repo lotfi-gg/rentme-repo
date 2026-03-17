@@ -51,7 +51,7 @@ class _RentedCarsState extends State<RentedCars> {
                   .collection('users')
                   .doc(FirebaseAuth.instance.currentUser!.uid)
                   .collection('cars')
-                  .where('avaiableIn', isNotEqualTo: 0)
+                  .where('status', isEqualTo: 'Rented')
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -98,6 +98,17 @@ class _RentedCarsState extends State<RentedCars> {
   }
 
   Widget buildCarCard(Map<String, dynamic> car) {
+    final pricePerDay = int.tryParse(car['price'].toString()) ?? 0;
+    final rentedAt = (car['rentedAt'] as Timestamp?)?.toDate();
+    final endTime = (car['endTime'] as Timestamp?)?.toDate();
+
+    int rentedDays = 0;
+    int totalPrice = 0;
+
+    if (rentedAt != null && endTime != null) {
+      rentedDays = endTime.difference(rentedAt).inDays;
+      totalPrice = rentedDays * pricePerDay;
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: SizedBox(
@@ -122,14 +133,6 @@ class _RentedCarsState extends State<RentedCars> {
                         backgroundColor: Colors.green,
                       ),
                       onPressed: () {
-                        final DateTime rentedAt = (car['rentedAt'] as Timestamp)
-                            .toDate();
-                        final DateTime now = DateTime.now();
-                        final int rentedDays = now.difference(rentedAt).inDays;
-                        final int pricePerDay =
-                            int.tryParse(car['price'].toString()) ?? 0;
-                        final int totalPrice = rentedDays * pricePerDay;
-
                         // Child dialog (summary)
                         showDialog(
                           context: context,
@@ -165,18 +168,18 @@ class _RentedCarsState extends State<RentedCars> {
                                         .collection('cars')
                                         .doc(car['id'])
                                         .update({
-                                          'avaiableIn': 0,
                                           'status': 'Available',
                                           'rentedAt': null,
+                                          'endTime': null,
                                         });
 
                                     await FirebaseFirestore.instance
                                         .collection('cars')
                                         .doc(car['id'])
                                         .update({
-                                          'avaiableIn': 0,
                                           'status': 'Available',
                                           'rentedAt': null,
+                                          'endTime': null,
                                         });
 
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -238,9 +241,10 @@ class _RentedCarsState extends State<RentedCars> {
                                       0;
                                   if (extraDays > 0) {
                                     try {
-                                      final newDays =
-                                          (car['avaiableIn'] as int) +
-                                          extraDays;
+                                      final newEndTime =
+                                          (car['endTime'] as Timestamp)
+                                              .toDate()
+                                              .add(Duration(days: extraDays));
 
                                       await FirebaseFirestore.instance
                                           .collection('users')
@@ -253,16 +257,16 @@ class _RentedCarsState extends State<RentedCars> {
                                           .collection('cars')
                                           .doc(car['id'])
                                           .update({
-                                            'avaiableIn': newDays,
                                             'status': 'Rented',
+                                            'endTime': newEndTime,
                                           });
 
                                       await FirebaseFirestore.instance
                                           .collection('cars')
                                           .doc(car['id'])
                                           .update({
-                                            'avaiableIn': newDays,
                                             'status': 'Rented',
+                                            'endTime': newEndTime,
                                           });
 
                                       ScaffoldMessenger.of(
@@ -282,7 +286,7 @@ class _RentedCarsState extends State<RentedCars> {
                                       );
                                     }
                                   }
-                                      Navigator.pop(dialogContext); // close summary
+                                  Navigator.pop(dialogContext); // close summary
                                   Navigator.pop(context); // close parent
                                 },
                                 child: const Text("Confirm"),
@@ -344,7 +348,7 @@ class _RentedCarsState extends State<RentedCars> {
                             Text(car['price'] ?? ''),
                             const Spacer(),
                             Text(
-                              "Total: ${(int.tryParse(car['price'].toString()) ?? 0) * (car['avaiableIn'] as int)} DA",
+                              "Total: $totalPrice DA",
                               style: const TextStyle(
                                 color: Colors.blue,
                                 fontWeight: FontWeight.bold,
@@ -355,12 +359,9 @@ class _RentedCarsState extends State<RentedCars> {
                         Row(
                           children: [
                             const Spacer(),
-                            if (car['rentedAt'] != null &&
-                                car['avaiableIn'] != null)
+                            if (car['endTime'] != null)
                               CountdownTimer(
-                                rentedAt: (car['rentedAt'] as Timestamp)
-                                    .toDate(),
-                                days: (car['avaiableIn'] as int),
+                                endTime: (car['endTime'] as Timestamp).toDate(),
                                 carId: car['id'],
                               )
                             else
@@ -381,16 +382,10 @@ class _RentedCarsState extends State<RentedCars> {
 }
 
 class CountdownTimer extends StatefulWidget {
-  final DateTime rentedAt;
-  final int days;
+  final DateTime endTime;
   final String carId;
 
-  const CountdownTimer({
-    super.key,
-    required this.rentedAt,
-    required this.days,
-    required this.carId,
-  });
+  const CountdownTimer({super.key, required this.endTime, required this.carId});
 
   @override
   State<CountdownTimer> createState() => _CountdownTimerState();
@@ -398,15 +393,12 @@ class CountdownTimer extends StatefulWidget {
 
 class _CountdownTimerState extends State<CountdownTimer> {
   late Duration remaining;
-  late DateTime endTime;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    // days should be treated as days, not seconds
-    endTime = widget.rentedAt.add(Duration(days: widget.days));
-    remaining = endTime.difference(DateTime.now());
+    remaining = widget.endTime.difference(DateTime.now());
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (!mounted) {
@@ -414,13 +406,12 @@ class _CountdownTimerState extends State<CountdownTimer> {
         return;
       }
       setState(() {
-        remaining = endTime.difference(DateTime.now());
+        remaining = widget.endTime.difference(DateTime.now());
       });
 
       if (remaining.isNegative) {
         timer.cancel();
 
-        // Update Firestore when countdown finishes
         try {
           await FirebaseFirestore.instance
               .collection('users')
@@ -428,34 +419,24 @@ class _CountdownTimerState extends State<CountdownTimer> {
               .collection('cars')
               .doc(widget.carId)
               .update({
-                'avaiableIn': 0,
                 'status': 'Available',
                 'rentedAt': null,
+                'endTime': null,
               });
 
           await FirebaseFirestore.instance
               .collection('cars')
               .doc(widget.carId)
               .update({
-                'avaiableIn': 0,
                 'status': 'Available',
                 'rentedAt': null,
+                'endTime': null,
               });
         } catch (e) {
           debugPrint("Error updating car availability: $e");
         }
       }
     });
-  }
-
-  @override
-  void didUpdateWidget(covariant CountdownTimer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // If days change (rent prolonged), recalculate endTime
-    if (oldWidget.days != widget.days) {
-      endTime = widget.rentedAt.add(Duration(days: widget.days));
-      remaining = endTime.difference(DateTime.now());
-    }
   }
 
   @override

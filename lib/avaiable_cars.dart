@@ -23,9 +23,7 @@ class _AvaiableCarsState extends State<AvaiableCars> {
         width: 150,
         child: FloatingActionButton.extended(
           onPressed: () {
-            FirebaseMessaging.instance.getToken().then((value) {
-              print('the FCM registration token ====> $value');
-            });
+            
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AddVehicle()),
@@ -69,10 +67,7 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                   .collection('users')
                   .doc(FirebaseAuth.instance.currentUser!.uid)
                   .collection('cars')
-                  .where(
-                    'avaiableIn',
-                    isEqualTo: 0,
-                  ) // ✅ only cars with avaiableIn = 0
+                  .where('status', isEqualTo: 'Available')
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -181,8 +176,12 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                       .collection('cars')
                                       .doc(car['id'])
                                       .update({
-                                        'avaiableIn': selectedDays,
+                                        'status': 'Rented',
                                         'rentedAt': DateTime.now(),
+                                        'endTime': DateTime.now().add(
+                                          Duration(seconds: selectedDays!),
+                                        ),
+
                                       });
 
                                   // If you also keep a global cars collection:
@@ -190,8 +189,12 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                       .collection('cars')
                                       .doc(car['id'])
                                       .update({
-                                        'avaiableIn': selectedDays,
+                                        'status': 'Rented',
                                         'rentedAt': DateTime.now(),
+                                        'endTime': DateTime.now().add(
+                                          Duration(seconds: selectedDays!),
+                                        ),
+
                                       });
 
                                   ScaffoldMessenger.of(context).showSnackBar(

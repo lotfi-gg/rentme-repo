@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:rentme/firebase/fire_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -132,6 +134,15 @@ class _CreatePageState extends State<CreatePage> {
                                 townhall.text,
                               ),
                             );
+                        FirebaseMessaging.instance.getToken().then((
+                          token,
+                        ) async {
+                          print("FCM Token======> $token");
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(FirebaseAuth.instance.currentUser!.uid)
+                              .update({'fcmToken': token});
+                        });
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('isFirstTime', false);
                         Navigator.of(context).pushNamed('myprofile');

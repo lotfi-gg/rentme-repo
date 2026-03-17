@@ -233,13 +233,13 @@ class _AddVehicleState extends State<AddVehicle> {
                                 'transmission': transmission.text,
                                 'price': price.text,
                                 'img': imgUrl,
-                                'status': status.text.trim().isEmpty
-                                    ? 'Available'
-                                    : status.text.trim(),
-                                'avaiableIn': 0, // ✅ initialize
-                                'rentedAt': null, // ✅ keep consistent
+                                'status':
+                                    'Available', // ✅ toujours Available au départ
+                                'rentedAt': null,
+                                'endTime': null,
                                 'currancy': currancy.text,
                               });
+
 
                           Navigator.pushReplacement(
                             context,
