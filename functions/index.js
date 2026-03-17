@@ -43,6 +43,21 @@ exports.checkExpiredRentals = onSchedule("every 1 minutes", async () => {
               rentedAt: null,
               endTime: null,
             });
+            // 🔔 Envoi de notification
+const userDoc = await db.collection("users").doc(car.ownerId).get();
+const userData = userDoc.data();
+
+if (userData && userData.fcmToken) {
+  await admin.messaging().send({
+    token: userData.fcmToken,
+    notification: {
+      title: "Car Available",
+      body: `Your car ${car.vehiclefullname} is now available.`,
+    },
+  });
+  console.log(`Notification sent to ${car.ownerId}`);
+}
+
         }
 
         console.log(`Car ${doc.id} marked as Available`);

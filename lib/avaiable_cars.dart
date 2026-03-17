@@ -23,7 +23,6 @@ class _AvaiableCarsState extends State<AvaiableCars> {
         width: 150,
         child: FloatingActionButton.extended(
           onPressed: () {
-            
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AddVehicle()),
@@ -167,7 +166,39 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                             onPressed: () async {
                               if (selectedDays != null && selectedDays! > 0) {
                                 try {
-                                  // 🔑 Update the car’s avaiableIn field
+                                  // 🔔 Vérifier et demander l'accès aux notifications
+                                  FirebaseMessaging messaging =
+                                      FirebaseMessaging.instance;
+                                  NotificationSettings settings =
+                                      await messaging.requestPermission();
+
+                                  if (settings.authorizationStatus ==
+                                      AuthorizationStatus.authorized) {
+                                    String? token = await messaging.getToken();
+                                    if (token != null) {
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(
+                                            FirebaseAuth
+                                                .instance
+                                                .currentUser!
+                                                .uid,
+                                          )
+                                          .update({'fcmToken': token});
+                                      print("FCM Token enregistré:==========> $token");
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Notifications not allowed",
+                                        ),
+                                      ),
+                                    );
+                                    return; // ⚠️ Stop si pas de permission
+                                  }
+
+                                  // 🔑 Mise à jour du statut de la voiture
                                   await FirebaseFirestore.instance
                                       .collection('users')
                                       .doc(
@@ -181,10 +212,8 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                         'endTime': DateTime.now().add(
                                           Duration(seconds: selectedDays!),
                                         ),
-
                                       });
 
-                                  // If you also keep a global cars collection:
                                   await FirebaseFirestore.instance
                                       .collection('cars')
                                       .doc(car['id'])
@@ -194,7 +223,6 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                         'endTime': DateTime.now().add(
                                           Duration(seconds: selectedDays!),
                                         ),
-
                                       });
 
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -204,6 +232,7 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                       ),
                                     ),
                                   );
+                                  
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text("Error: $e")),
