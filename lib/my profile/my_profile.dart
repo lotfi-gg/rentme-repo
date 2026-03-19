@@ -6,9 +6,9 @@ import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rentme/firebase/fire_auth.dart';
 import 'package:rentme/firebase/fire_storage.dart';
-import 'package:rentme/home_page.dart';
+import 'package:rentme/home/home_page.dart';
 import 'package:rentme/models/user_model.dart';
-import 'package:rentme/my_vehicles.dart';
+import 'package:rentme/my%20profile/cars/my_vehicles.dart';
 
 class MyProfile extends StatefulWidget {
   const MyProfile({super.key});

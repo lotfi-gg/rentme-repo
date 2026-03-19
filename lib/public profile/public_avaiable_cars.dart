@@ -24,7 +24,10 @@ class _PublicAvaiableCarsState extends State<PublicAvaiableCars> {
                   .collection('users')
                   .doc(FirebaseAuth.instance.currentUser!.uid)
                   .collection('cars')
-                  .where('avaiableIn', isEqualTo: 0) // ✅ only available cars
+                  .where(
+                    'status',
+                    isEqualTo: 'Available',
+                  ) // ✅ only available cars
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {

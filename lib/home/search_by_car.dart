@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:rentme/home_page.dart';
+import 'package:rentme/home/home_page.dart';
 import 'package:rentme/models/user_model.dart'; // ChatUser model
-import 'package:rentme/public_profile.dart'; // PublicProfile widget
+import 'package:rentme/public%20profile/public_profile.dart'; // PublicProfile widget
 
 class SearchByCar extends StatefulWidget {
   const SearchByCar({super.key});

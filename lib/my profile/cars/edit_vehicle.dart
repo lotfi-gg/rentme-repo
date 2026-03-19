@@ -5,10 +5,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:rentme/avaiable_cars.dart';
 import 'package:rentme/firebase/fire_auth.dart';
 import 'package:rentme/firebase/fire_storage.dart';
 import 'package:rentme/models/car_model.dart';
+import 'package:rentme/my%20profile/cars/my_vehicles.dart';
 
 class EditVehicle extends StatefulWidget {
   final String carId;
@@ -506,32 +506,6 @@ class _EditVehicleState extends State<EditVehicle> {
 
                   const SizedBox(height: 30),
 
-                  // --- Status dropdown ---
-                  DropdownButtonFormField<String>(
-                    initialValue:
-                        ["Available", "Rented"].contains(myvehicle?.status)
-                        ? myvehicle?.status
-                        : null,
-                    validator: (value) => value == null || value.trim().isEmpty
-                        ? "field required !"
-                        : null,
-                    decoration: const InputDecoration(labelText: "Status"),
-                    items: ["Available", "Rented"].map((status) {
-                      return DropdownMenuItem<String>(
-                        value: status,
-                        child: Text(status),
-                      );
-                    }).toList(),
-                    onChanged: readonly
-                        ? null
-                        : (value) {
-                            setState(() {
-                              status.text = value ?? '';
-                            });
-                          },
-                  ),
-
-                  const SizedBox(height: 30),
                   TextFormField(
                     readOnly: readonly,
                     validator: (value) => value == null || value.trim().isEmpty
@@ -606,7 +580,7 @@ class _EditVehicleState extends State<EditVehicle> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const AvaiableCars(),
+                                  builder: (context) => const MyVehicles(),
                                 ),
                               );
                             } catch (e) {

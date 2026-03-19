@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:rentme/models/user_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:rentme/public_avaiable_cars.dart';
-import 'package:rentme/public_rented_cars.dart';
+import 'package:rentme/public%20profile/public_avaiable_cars.dart';
+import 'package:rentme/public%20profile/public_rented_cars.dart';
 import 'package:intl/intl.dart';
 
 class PublicProfile extends StatefulWidget {
@@ -98,23 +98,37 @@ class _PublicProfileState extends State<PublicProfile> {
                 .collection('ratings')
                 .snapshots(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return InkWell(
-                  onTap: () => _showRatingDialog(context),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(5, (index) {
-                      return const Icon(
-                        Icons.star_border,
-                        color: Colors.amber,
-                        size: 30,
-                      );
-                    }),
-                  ),
+              if (!snapshot.hasData) {
+                return const SizedBox();
+              }
+
+              final docs = snapshot.data!.docs;
+
+              if (docs.isEmpty) {
+                // 👇 No ratings yet
+                return Column(
+                  children: [
+                    InkWell(
+                      onTap: () => _showRatingDialog(context),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (index) {
+                          return const Icon(
+                            Icons.star_border,
+                            color: Colors.amber,
+                            size: 30,
+                          );
+                        }),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text('Ratings: 0'), // 👈 Always show count
+                  ],
                 );
               }
 
-              final ratings = snapshot.data!.docs
+              // 👇 There are ratings
+              final ratings = docs
                   .map(
                     (doc) =>
                         (doc.data() as Map<String, dynamic>)['stars'] as int,
@@ -142,7 +156,7 @@ class _PublicProfileState extends State<PublicProfile> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text('Ratings: ${ratings.length}'),
+                  Text('Ratings: ${ratings.length}'), // 👈 Dynamic count
                 ],
               );
             },

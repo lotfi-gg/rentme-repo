@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rentme/auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
@@ -24,7 +25,10 @@ class _WelcomePageState extends State<WelcomePage> {
             ),
             SizedBox(height: 100),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setBool('isFirstTime', false);
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => Auth()),

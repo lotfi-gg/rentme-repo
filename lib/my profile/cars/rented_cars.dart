@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:rentme/edit_vehicle.dart';
-import 'package:rentme/my_profile.dart';
+import 'package:rentme/my%20profile/cars/edit_vehicle.dart';
+import 'package:rentme/my%20profile/my_profile.dart';
 
 class RentedCars extends StatefulWidget {
   const RentedCars({super.key});

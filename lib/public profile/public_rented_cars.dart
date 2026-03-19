@@ -22,7 +22,7 @@ class _PublicRentedCarsState extends State<PublicRentedCars> {
                   .collection('users')
                   .doc(FirebaseAuth.instance.currentUser!.uid)
                   .collection('cars')
-                  .where('avaiableIn', isNotEqualTo: 0) // ✅ only rented cars
+                  .where('status', isNotEqualTo: 'Rented') // ✅ only rented cars
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {

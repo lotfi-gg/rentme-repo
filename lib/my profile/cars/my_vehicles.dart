@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:rentme/avaiable_cars.dart';
-import 'package:rentme/rented_cars.dart';
+import 'package:rentme/my%20profile/cars/avaiable_cars.dart';
+import 'package:rentme/my%20profile/cars/rented_cars.dart';
 
 class MyVehicles extends StatefulWidget {
   const MyVehicles({super.key});

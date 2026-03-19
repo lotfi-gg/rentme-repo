@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:rentme/create_page.dart';
+import 'package:rentme/home/create_page.dart';
 import 'package:rentme/models/user_model.dart';
-import 'package:rentme/my_profile.dart';
-import 'package:rentme/public_profile.dart';
+import 'package:rentme/my%20profile/my_profile.dart';
+import 'package:rentme/public%20profile/public_profile.dart';
 import 'dart:math' show cos, sqrt, asin;
 
-import 'package:rentme/search_by_car.dart';
-import 'package:rentme/search_by_location.dart';
+import 'package:rentme/home/search_by_car.dart';
+import 'package:rentme/home/search_by_location.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -443,13 +443,27 @@ class _HomePageState extends State<HomePage> {
             return const Center(child: Text("No users found"));
           }
 
+          // ✅ Build users list
           final users = snapshot.data!.docs
               .map(
                 (doc) => ChatUser.fromJson(doc.data() as Map<String, dynamic>),
               )
               .toList();
 
-          final nearbyUsers = users.where((user) {
+          // ✅ Remove duplicates safely (skip null ids)
+          final Map<String, ChatUser> userMap = {};
+          for (var u in users) {
+            if (u.id != null) {
+              userMap[u.id!] = u;
+            }
+          }
+          final uniqueUsers = userMap.values.toList();
+
+          // ✅ Shuffle once
+          uniqueUsers.shuffle();
+
+          // ✅ Nearby users also deduplicated
+          final nearbyUsers = uniqueUsers.where((user) {
             if (me == null || me!.latitude == null || me!.longitude == null) {
               return false;
             }
@@ -474,10 +488,9 @@ class _HomePageState extends State<HomePage> {
                     setState(() {}); // triggers rebuild
                   },
                   child: ListView.builder(
-                    itemCount: users.length,
+                    itemCount: uniqueUsers.length,
                     itemBuilder: (context, index) {
-                      final shuffledUsers = [...users]..shuffle();
-                      final user = shuffledUsers[index];
+                      final user = uniqueUsers[index];
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: SizedBox(
@@ -535,7 +548,32 @@ class _HomePageState extends State<HomePage> {
                                           "${user.province ?? ''} / ${user.townhall ?? ''}",
                                         ),
                                         const SizedBox(height: 8),
-                                        const Text("Available Vehicles: 12345"),
+
+                                        // ✅ Show available cars count
+                                        StreamBuilder<QuerySnapshot>(
+                                          stream: FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(user.id)
+                                              .collection('cars')
+                                              .where(
+                                                'status',
+                                                isEqualTo: 'Available',
+                                              )
+                                              .snapshots(),
+                                          builder: (context, snapshot) {
+                                            if (!snapshot.hasData)
+                                              return const SizedBox();
+                                            final count =
+                                                snapshot.data!.docs.length;
+                                            return count == 0
+                                                ? const Text(
+                                                    "No available vehicles",
+                                                  )
+                                                : Text(
+                                                    "Available Vehicles: $count",
+                                                  );
+                                          },
+                                        ),
                                       ],
                                     ),
                                   ),
