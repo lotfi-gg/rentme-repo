@@ -561,8 +561,9 @@ class _HomePageState extends State<HomePage> {
                                               )
                                               .snapshots(),
                                           builder: (context, snapshot) {
-                                            if (!snapshot.hasData)
+                                            if (!snapshot.hasData) {
                                               return const SizedBox();
+                                            }
                                             final count =
                                                 snapshot.data!.docs.length;
                                             return count == 0

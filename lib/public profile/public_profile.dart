@@ -73,13 +73,57 @@ class _PublicProfileState extends State<PublicProfile> {
     );
   }
 
+  /// ✅ Ratings section always visible
+  Widget _buildRatingsSection() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.user.id)
+          .collection('ratings')
+          .snapshots(),
+      builder: (context, snapshot) {
+        int ratingCount = 0;
+        double avgRating = 0;
+
+        if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+          final ratings = snapshot.data!.docs
+              .map(
+                (doc) => (doc.data() as Map<String, dynamic>)['stars'] as int,
+              )
+              .toList();
+          ratingCount = ratings.length;
+          avgRating = ratings.reduce((a, b) => a + b) / ratingCount;
+        }
+
+        return Column(
+          children: [
+            InkWell(
+              onTap: () => _showRatingDialog(context),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  return Icon(
+                    index < avgRating.round() ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 30,
+                  );
+                }),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text('Ratings: $ratingCount'),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.user.agencyname!)),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _buildFloatingButtons(),
-
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -90,81 +134,10 @@ class _PublicProfileState extends State<PublicProfile> {
           ),
           const SizedBox(height: 10),
 
-          // Ratings section
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('users')
-                .doc(widget.user.id)
-                .collection('ratings')
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const SizedBox();
-              }
-
-              final docs = snapshot.data!.docs;
-
-              if (docs.isEmpty) {
-                // 👇 No ratings yet
-                return Column(
-                  children: [
-                    InkWell(
-                      onTap: () => _showRatingDialog(context),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(5, (index) {
-                          return const Icon(
-                            Icons.star_border,
-                            color: Colors.amber,
-                            size: 30,
-                          );
-                        }),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text('Ratings: 0'), // 👈 Always show count
-                  ],
-                );
-              }
-
-              // 👇 There are ratings
-              final ratings = docs
-                  .map(
-                    (doc) =>
-                        (doc.data() as Map<String, dynamic>)['stars'] as int,
-                  )
-                  .toList();
-
-              final avgRating =
-                  ratings.reduce((a, b) => a + b) / ratings.length;
-
-              return Column(
-                children: [
-                  InkWell(
-                    onTap: () => _showRatingDialog(context),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(5, (index) {
-                        return Icon(
-                          index < avgRating.round()
-                              ? Icons.star
-                              : Icons.star_border,
-                          color: Colors.amber,
-                          size: 30,
-                        );
-                      }),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text('Ratings: ${ratings.length}'), // 👈 Dynamic count
-                ],
-              );
-            },
-          ),
+          _buildRatingsSection(), // ✅ always visible
 
           const SizedBox(height: 10),
 
-          // 👇 Navigation bar directly under ratings
           NavigationBar(
             selectedIndex: currentIndex,
             onDestinationSelected: (value) {
@@ -182,7 +155,6 @@ class _PublicProfileState extends State<PublicProfile> {
             ],
           ),
 
-          // 👇 Expanded PageView for cars
           Expanded(
             child: PageView(
               controller: pageController,
@@ -246,7 +218,7 @@ class _PublicProfileState extends State<PublicProfile> {
         ),
         const SizedBox(height: 18),
 
-        // Call button
+        // Call & Comments buttons
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -276,7 +248,6 @@ class _PublicProfileState extends State<PublicProfile> {
               ),
             ),
             SizedBox(width: MediaQuery.of(context).size.width * 0.2),
-            // Comments button with full functionality
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.3,
               child: FloatingActionButton.extended(
