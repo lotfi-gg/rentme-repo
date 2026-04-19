@@ -18,12 +18,26 @@ class _SearchByCarState extends State<SearchByCar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF121212), // ✅ fond premium anthracite
       appBar: AppBar(
+        backgroundColor: const Color(0xFF121212),
+        elevation: 0,
         title: Card(
+          color: const Color(0xFF1E1E1E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
           child: TextField(
+            style: const TextStyle(color: Colors.white),
             decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'search ..',
+              prefixIcon: Icon(Icons.search, color: Colors.deepOrangeAccent),
+              hintText: 'Search cars...',
+              hintStyle: TextStyle(color: Colors.grey),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
             onChanged: (value) {
               setState(() {
@@ -33,7 +47,7 @@ class _SearchByCarState extends State<SearchByCar> {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.deepOrangeAccent),
           onPressed: () {
             Navigator.pushReplacement(
               context,
@@ -44,7 +58,7 @@ class _SearchByCarState extends State<SearchByCar> {
       ),
       body: Column(
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -59,7 +73,12 @@ class _SearchByCarState extends State<SearchByCar> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("No cars found"));
+                  return const Center(
+                    child: Text(
+                      "No cars found",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
                 }
 
                 final cars = snapshot.data!.docs;
@@ -68,7 +87,6 @@ class _SearchByCarState extends State<SearchByCar> {
                   itemCount: cars.length,
                   itemBuilder: (context, index) {
                     final car = cars[index].data() as Map<String, dynamic>;
-
                     final vehicleName =
                         car['vehiclefullname']
                             ?.toString()
@@ -83,7 +101,6 @@ class _SearchByCarState extends State<SearchByCar> {
                         year.contains(search)) {
                       return buildCarCard(car);
                     }
-
                     return const SizedBox.shrink();
                   },
                 );
@@ -103,81 +120,122 @@ class _SearchByCarState extends State<SearchByCar> {
           .get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Text('');
+          return const SizedBox();
         }
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const Text("");
+          return const SizedBox();
         }
 
         final ownerData = snapshot.data!.data() as Map<String, dynamic>;
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: SizedBox(
-            height: 180,
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-              elevation: 5,
-              margin: const EdgeInsets.symmetric(vertical: 5),
-              child: InkWell(
-                onTap: () {
-                  final ownerUser = ChatUser.fromJson(ownerData);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PublicProfile(user: ownerUser),
+          child: Card(
+            color: const Color(0xFF1E1E1E),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            elevation: 4,
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              onTap: () {
+                final ownerUser = ChatUser.fromJson(ownerData);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PublicProfile(user: ownerUser),
+                  ),
+                );
+              },
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(20),
                     ),
-                  );
-                },
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.horizontal(
-                        left: Radius.circular(25),
-                      ),
-                      child: car['img'] != null && car['img'] != ''
-                          ? Image.network(
-                              car['img'],
-                              height: double.infinity,
-                              width: 200,
-                              fit: BoxFit.cover,
-                            )
-                          : Image.asset(
-                              'images/car.jpg',
-                              height: double.infinity,
-                              width: 200,
-                              fit: BoxFit.cover,
-                            ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
+                    child: car['img'] != null && car['img'] != ''
+                        ? Image.network(
+                            car['img'],
+                            height: 180,
+                            width: 160,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.asset(
+                            'images/car.png',
+                            height: 180,
+                            width: 160,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Text(car['vehiclefullname'] ?? ''),
+                          Text(
+                            car['vehiclefullname'] ?? '',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "Year : ${car['year']?.toString() ?? ''}",
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
 
-                          Text(car['year']?.toString() ?? ''),
-
-                          Text(car['transmission'] ?? ''),
-
-                          Text(car['price'] ?? ''),
-
-                          Text(car['status'] ?? 'Available'),
-
-                          // ✅ Show location from owner profile
+                          Text(
+                            'Transmission : ${car['transmission'] ?? ''}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            "Price : ${car['price']} DA",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.deepOrangeAccent,
+                            ),
+                          ),
+                          Text(
+                            car['status'] ?? 'Available',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
                           Text(
                             "Location: ${ownerData['country'] ?? ''}, "
                             "${ownerData['province'] ?? ''}, "
                             "${ownerData['townhall'] ?? ''}",
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.deepOrangeAccent,
+                    size: 18,
+                  ),
+                ],
               ),
             ),
           ),

@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rentme/models/user_model.dart'; // ChatUser model
-import 'package:rentme/public%20profile/public_profile.dart'; // PublicProfile widget
+import 'package:rentme/public%20profile/public_profile.dart';
+ 
 
 class SearchByLocation extends StatelessWidget {
   final String? country;

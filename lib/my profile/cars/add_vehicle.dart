@@ -89,7 +89,7 @@ class _AddVehicleState extends State<AddVehicle> {
                               fit: BoxFit.cover,
                             )
                           : const DecorationImage(
-                              image: AssetImage("images/car.jpg"),
+                              image: AssetImage("images/car.png"),
                               fit: BoxFit.cover,
                             ),
                     ),

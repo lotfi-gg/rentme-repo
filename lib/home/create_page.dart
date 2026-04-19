@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:rentme/firebase/fire_auth.dart';
+import 'package:rentme/my%20profile/my_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CreatePage extends StatefulWidget {
@@ -132,10 +134,22 @@ class _CreatePageState extends State<CreatePage> {
                                 townhall.text,
                               ),
                             );
-                        
+
+                        // ✅ Mark hasCreated in Firestore
+                        await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(FirebaseAuth.instance.currentUser!.uid)
+                            .update({'hasCreated': true});
+
+                        // ✅ SharedPreferences if you still want local flag
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('isFirstTime', false);
-                        Navigator.of(context).pushNamed('myprofile');
+
+                        // ✅ Navigate back to HomePage and trigger refresh
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (_) => const MyProfile()),
+                        );
+
                         print('user created -----------');
                       } catch (e) {
                         ScaffoldMessenger.of(
@@ -145,9 +159,12 @@ class _CreatePageState extends State<CreatePage> {
                       }
                     }
                   },
-                  style: ElevatedButton.styleFrom(minimumSize: Size(250, 48)),
-                  child: Text('SAVE AND CONTINUE'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(250, 48),
+                  ),
+                  child: const Text('SAVE AND CONTINUE'),
                 ),
+
               ],
             ),
           ),

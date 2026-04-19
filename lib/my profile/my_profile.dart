@@ -69,28 +69,45 @@ class _MyProfileState extends State<MyProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF121212),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.3,
-            child: FloatingActionButton.extended(
-              heroTag: "EDITBtn",
+            child: ElevatedButton.icon(
               onPressed: () {
                 setState(() {
                   readonly = false;
                 });
               },
-              icon: Icon(Icons.edit),
-              label: Text('EDIT'),
+              icon: const Icon(Icons.edit, color: Colors.white),
+              label: const Text(
+                'EDIT',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent, // premium accent color
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12), // smooth corners
+                ),
+                elevation: 4, // subtle shadow for depth
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 12,
+                ),
+              ),
             ),
           ),
           SizedBox(width: MediaQuery.of(context).size.width * 0.2),
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.3,
-            child: FloatingActionButton.extended(
-              heroTag: "SAVEBtn",
+            child: ElevatedButton.icon(
               onPressed: () async {
                 if (formstate.currentState!.validate()) {
                   setState(() {
@@ -119,15 +136,35 @@ class _MyProfileState extends State<MyProfile> {
                   });
                 }
               },
-              icon: Icon(Icons.check),
-              label: Text('SAVE'),
+              icon: const Icon(Icons.check, color: Colors.white),
+              label: const Text(
+                'SAVE',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    Colors.greenAccent.shade700, // success accent color
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 4,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 12,
+                ),
+              ),
             ),
           ),
         ],
       ),
       appBar: AppBar(
+        backgroundColor: const Color(0xFF121212),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.orange),
           onPressed: () {
             Navigator.push(
               context,
@@ -157,6 +194,7 @@ class _MyProfileState extends State<MyProfile> {
                   clipBehavior: Clip.none,
                   children: [
                     CircleAvatar(
+                      backgroundColor: Colors.transparent,
                       radius: 70,
                       backgroundImage: _img.isNotEmpty
                           ? FileImage(File(_img))
@@ -225,104 +263,322 @@ class _MyProfileState extends State<MyProfile> {
                   ],
                 ),
                 SizedBox(height: 20),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => MyVehicles()),
                     );
                   },
-                  style: ElevatedButton.styleFrom(minimumSize: Size(150, 48)),
-                  child: Text('MY VEHICLES'),
+                  icon: const Icon(
+                    Iconsax.car,
+                    color: Colors.white,
+                  ), // modern car icon
+                  label: const Text(
+                    'MY VEHICLES',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Colors.deepPurpleAccent, // premium accent color
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 4,
+                    minimumSize: const Size(
+                      180,
+                      50,
+                    ), // slightly larger for importance
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 12,
+                    ),
+                  ),
                 ),
                 SizedBox(height: 40),
                 TextFormField(
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return "field required !";
+                      return "Field required!";
                     }
                     return null;
                   },
                   readOnly: readonly,
                   controller: username,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                   decoration: InputDecoration(
-                    labelText: 'Full Name',
-                    border: UnderlineInputBorder(),
+                    hintText: 'Full Name', // 👈 inside the field
+                    hintStyle: const TextStyle(
+                      color: Colors.white54,
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.person,
+                      color: Colors.blueAccent,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade900,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade800,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.blueAccent,
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 12,
+                    ),
                   ),
                 ),
                 SizedBox(height: 30),
                 TextFormField(
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return "field required !";
+                      return "Field required!";
                     }
                     return null;
                   },
                   readOnly: readonly,
                   controller: phonenumber,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                   decoration: InputDecoration(
-                    labelText: 'Phone Number',
-                    border: UnderlineInputBorder(),
+                    hintText: 'Phone Number', // 👈 inside the field
+                    hintStyle: const TextStyle(
+                      color: Colors.white54,
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.phone,
+                      color: Colors.blueAccent,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade900, // subtle dark background
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade800,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.blueAccent,
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 12,
+                    ),
                   ),
                 ),
                 SizedBox(height: 30),
                 TextFormField(
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return "field required !";
+                      return "Field required!";
                     }
                     return null;
                   },
                   readOnly: readonly,
                   controller: agencyname,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                   decoration: InputDecoration(
-                    labelText: 'Agency Name',
-                    border: UnderlineInputBorder(),
+                    hintText: 'Agency Name', // 👈 inside the field
+                    hintStyle: const TextStyle(
+                      color: Colors.white54,
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.business,
+                      color: Colors.blueAccent,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade900, // subtle dark background
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade800,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.blueAccent,
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 12,
+                    ),
                   ),
                 ),
                 SizedBox(height: 30),
                 TextFormField(
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return "field required !";
+                      return "Field required!";
                     }
                     return null;
                   },
                   readOnly: readonly,
                   controller: country,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                   decoration: InputDecoration(
-                    labelText: 'Country',
-                    border: UnderlineInputBorder(),
+                    hintText: 'Country', // 👈 inside the field
+                    hintStyle: const TextStyle(
+                      color: Colors.white54,
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.public,
+                      color: Colors.blueAccent,
+                    ), // globe icon
+                    filled: true,
+                    fillColor: Colors.grey.shade900, // subtle dark background
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade800,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.blueAccent,
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 12,
+                    ),
                   ),
                 ),
                 SizedBox(height: 30),
                 TextFormField(
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return "field required !";
+                      return "Field required!";
                     }
                     return null;
                   },
                   readOnly: readonly,
                   controller: province,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                   decoration: InputDecoration(
-                    labelText: 'Province',
-                    border: UnderlineInputBorder(),
+                    hintText: 'Province', // 👈 inside the field
+                    hintStyle: const TextStyle(
+                      color: Colors.white54,
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.location_city,
+                      color: Colors.blueAccent,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade900, // subtle dark background
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade800,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.blueAccent,
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 12,
+                    ),
                   ),
                 ),
                 SizedBox(height: 30),
                 TextFormField(
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return "field required !";
+                      return "Field required!";
                     }
                     return null;
                   },
                   readOnly: readonly,
                   controller: townhall,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                   decoration: InputDecoration(
-                    labelText: 'Town Hall',
-                    border: UnderlineInputBorder(),
+                    hintText: 'Town Hall', // 👈 inside the field
+                    hintStyle: const TextStyle(
+                      color: Colors.white54,
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.location_on,
+                      color: Colors.blueAccent,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade900, // subtle dark background
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade800,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.blueAccent,
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 12,
+                    ),
                   ),
                 ),
               ],

@@ -169,14 +169,14 @@ class _EditVehicleState extends State<EditVehicle> {
                         height: 300,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
-                          color: Colors.red,
+                          color: Colors.grey,
                           image: DecorationImage(
                             image: _img.isNotEmpty
                                 ? FileImage(File(_img))
                                 : (myvehicle?.img != null &&
                                           myvehicle!.img!.isNotEmpty
                                       ? NetworkImage(myvehicle!.img!)
-                                      : const AssetImage('images/car.jpg')),
+                                      : const AssetImage('images/car.png')),
                             fit: BoxFit.fitWidth,
                           ),
                         ),

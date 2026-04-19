@@ -1,10 +1,12 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+ 
 import 'package:flutter/material.dart';
+import 'package:rentme/models/user_model.dart';
 
 class PublicAvaiableCars extends StatefulWidget {
-  const PublicAvaiableCars({super.key});
+  final ChatUser user;
+  const PublicAvaiableCars({super.key,required this.user});
 
   @override
   State<PublicAvaiableCars> createState() => _PublicAvaiableCarsState();
@@ -22,7 +24,7 @@ class _PublicAvaiableCarsState extends State<PublicAvaiableCars> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
-                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .doc(widget.user.id)
                   .collection('cars')
                   .where(
                     'status',
@@ -34,7 +36,7 @@ class _PublicAvaiableCarsState extends State<PublicAvaiableCars> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("No available vehicles"));
+                  return const Center(child: Text("No available vehicles" ));
                 }
 
                 final cars = snapshot.data!.docs;
@@ -92,7 +94,7 @@ class _PublicAvaiableCarsState extends State<PublicAvaiableCars> {
                                   fit: BoxFit.cover,
                                 )
                               : Image.asset(
-                                  'images/car.jpg',
+                                  'images/car.png',
                                   width: double.infinity,
                                   height: 180,
                                   fit: BoxFit.cover,
@@ -162,7 +164,7 @@ class _PublicAvaiableCarsState extends State<PublicAvaiableCars> {
                             fit: BoxFit.cover,
                           )
                         : Image.asset(
-                            'images/car.jpg',
+                            'images/car.png',
                             height: double.infinity,
                             width: 200,
                             fit: BoxFit.cover,

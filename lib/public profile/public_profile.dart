@@ -163,7 +163,10 @@ class _PublicProfileState extends State<PublicProfile> {
                   currentIndex = value;
                 });
               },
-              children: const [PublicAvaiableCars(), PublicRentedCars()],
+              children: [
+                PublicAvaiableCars(user: widget.user),
+                PublicRentedCars(),
+              ],
             ),
           ),
         ],

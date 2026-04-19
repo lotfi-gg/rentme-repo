@@ -76,7 +76,7 @@ class _PublicRentedCarsState extends State<PublicRentedCars> {
                           fit: BoxFit.cover,
                         )
                       : Image.asset(
-                          'images/car.jpg',
+                          'images/car.png',
                           height: double.infinity,
                           width: 200,
                           fit: BoxFit.cover,

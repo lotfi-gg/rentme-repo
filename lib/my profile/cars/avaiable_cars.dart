@@ -272,7 +272,7 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                 fit: BoxFit.cover,
                               )
                             : Image.asset(
-                                'images/car.jpg',
+                                'images/car.png',
                                 height: double.infinity,
                                 width: 200,
                                 fit: BoxFit.cover,

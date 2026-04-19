@@ -16,6 +16,14 @@ class _AuthState extends State<Auth> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool isLoading = false;
+
+  void _setLoading(bool value) {
+    if (!mounted) return; // ✅ évite l’erreur si le widget est détruit
+    setState(() {
+      isLoading = value;
+    });
+  }
 
   void _showError(String message) {
     ScaffoldMessenger.of(
@@ -82,13 +90,21 @@ class _AuthState extends State<Auth> {
     return true;
   }
 
+  // login with google
   Future signInWithGoogle() async {
+    _setLoading(true); // ✅ activer le loader
     bool hasPermission = await _checkLocationPermissionAndService();
-    if (!hasPermission) return;
+    if (!hasPermission) {
+      _setLoading(false);
+      return;
+    }
 
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return;
+      if (googleUser == null) {
+        _setLoading(false);
+        return;
+      }
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
@@ -122,14 +138,21 @@ class _AuthState extends State<Auth> {
       }
     } catch (e) {
       _showError("Error during Google sign-in: $e");
+    } finally {
+      _setLoading(false); // ✅ désactiver le loader
     }
   }
 
+  // sign in with email and password
   Future<void> signInWithEmailPassword() async {
     if (!_formKey.currentState!.validate()) return;
+    _setLoading(true);
 
     bool hasPermission = await _checkLocationPermissionAndService();
-    if (!hasPermission) return;
+    if (!hasPermission) {
+      _setLoading(false);
+      return;
+    }
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -157,14 +180,21 @@ class _AuthState extends State<Auth> {
       }
     } catch (e) {
       _showError("Login failed: $e");
+    } finally {
+      _setLoading(false); // ✅ désactiver le loader
     }
   }
 
+  // sign up with email and password
   Future<void> signUpWithEmailPassword() async {
     if (!_formKey.currentState!.validate()) return;
+    _setLoading(true);
 
     bool hasPermission = await _checkLocationPermissionAndService();
-    if (!hasPermission) return;
+    if (!hasPermission) {
+      _setLoading(false);
+      return;
+    }
 
     try {
       UserCredential userCredential = await FirebaseAuth.instance
@@ -194,102 +224,276 @@ class _AuthState extends State<Auth> {
       }
     } catch (e) {
       _showError("Signup failed: $e");
+    } finally {
+      _setLoading(false); // ✅ désactiver le loader
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset('images/car.jpg', height: 200),
-                  TextFormField(
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Email cannot be empty";
-                      }
-                      if (!RegExp(
-                        r'^[^@]{5,}@[^@]{5,}\.[^@]+$',
-                      ).hasMatch(value)) {
-                        return "Enter a valid email";
-                      }
-                      return null;
-                    },
-                    controller: emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'images/car.png',
+
+                        width: 500, // tu peux aussi fixer la largeur
+                        fit: BoxFit
+                            .contain, // ajuste le contenu sans déformation
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Password cannot be empty";
-                      }
-                      if (value.length < 6) {
-                        return "Password must be at least 6 characters";
-                      }
-                      return null;
-                    },
-                    obscureText: true,
-                    controller: passwordController,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: signInWithEmailPassword,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 48),
-                    ),
-                    child: const Text('LOGIN'),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: signUpWithEmailPassword,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 48),
-                    ),
-                    child: const Text('SIGN UP'),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: signInWithGoogle,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 48),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('LOGIN WITH GOOGLE'),
-                        const SizedBox(width: 8),
-                        Image.asset(
-                          'images/google logo.jpg',
-                          width: 40,
-                          fit: BoxFit.contain,
+                      TextFormField(
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Email cannot be empty";
+                          }
+                          if (!RegExp(
+                            r'^[^@]{5,}@[^@]{5,}\.[^@]+$',
+                          ).hasMatch(value)) {
+                            return "Enter a valid email";
+                          }
+                          return null;
+                        },
+                        controller: emailController,
+                        style: const TextStyle(
+                          color: Colors.white, // ✅ texte blanc pour contraste
+                          fontSize: 18,
                         ),
-                      ],
-                    ),
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          labelStyle: const TextStyle(
+                            color: Colors
+                                .blueAccent, // ✅ couleur premium pour le label
+                            fontWeight: FontWeight.w600,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.email,
+                            color: Colors.blueAccent, // ✅ icône élégante
+                          ),
+                          filled: true,
+                          fillColor: Colors.black, // ✅ fond uniforme
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: const BorderSide(
+                              color: Colors.blueAccent, // ✅ bord premium
+                              width: 1.5,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: const BorderSide(
+                              color: Colors
+                                  .deepOrangeAccent, // ✅ couleur accent au focus
+                              width: 2,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: const BorderSide(
+                              color: Colors
+                                  .redAccent, // ✅ couleur claire pour erreurs
+                              width: 1.5,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Password cannot be empty";
+                          }
+                          if (value.length < 6) {
+                            return "Password must be at least 6 characters";
+                          }
+                          return null;
+                        },
+                        obscureText: true,
+                        controller: passwordController,
+                        style: const TextStyle(
+                          color: Colors.white, // ✅ texte blanc pour contraste
+                          fontSize: 18,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          labelStyle: const TextStyle(
+                            color: Colors
+                                .blueAccent, // ✅ couleur premium pour le label
+                            fontWeight: FontWeight.w600,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.lock, // ✅ icône cadenas pour password
+                            color: Colors.blueAccent,
+                          ),
+                          filled: true,
+                          fillColor: Colors.black, // ✅ fond uniforme
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: const BorderSide(
+                              color: Colors.blueAccent, // ✅ bord premium
+                              width: 1.5,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: const BorderSide(
+                              color: Colors
+                                  .deepOrangeAccent, // ✅ couleur accent au focus
+                              width: 2,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: const BorderSide(
+                              color: Colors
+                                  .redAccent, // ✅ couleur claire pour erreurs
+                              width: 1.5,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: signInWithEmailPassword,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(
+                            double.infinity,
+                            50,
+                          ), // ✅ largeur max, hauteur confortable
+                          backgroundColor:
+                              Colors.blueAccent, // ✅ couleur premium cohérente
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              30,
+                            ), // ✅ coins arrondis modernes
+                          ),
+                          elevation:
+                              6, // ✅ ombre subtile pour donner de la profondeur
+                        ),
+                        child: const Text(
+                          'LOGIN',
+                          style: TextStyle(
+                            fontSize: 20, // ✅ taille de texte lisible
+                            fontWeight: FontWeight
+                                .bold, // ✅ texte fort et professionnel
+                            color:
+                                Colors.white, // ✅ contraste fort sur fond bleu
+                            letterSpacing: 1.5, // ✅ espacement élégant
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: signUpWithEmailPassword,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(
+                            double.infinity,
+                            50,
+                          ), // ✅ largeur max, hauteur confortable
+                          backgroundColor: Colors
+                              .deepOrangeAccent, // ✅ couleur premium différente pour le distinguer
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              30,
+                            ), // ✅ coins arrondis modernes
+                          ),
+                          elevation:
+                              6, // ✅ ombre subtile pour donner de la profondeur
+                        ),
+                        child: const Text(
+                          'SIGN UP',
+                          style: TextStyle(
+                            fontSize: 20, // ✅ taille de texte lisible
+                            fontWeight: FontWeight
+                                .bold, // ✅ texte fort et professionnel
+                            color: Colors
+                                .white, // ✅ contraste fort sur fond orange
+                            letterSpacing: 1.5, // ✅ espacement élégant
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: signInWithGoogle,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(
+                            double.infinity,
+                            50,
+                          ), // ✅ largeur max
+                          backgroundColor: Colors
+                              .white, // ✅ fond blanc pour respecter l’identité Google
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              30,
+                            ), // ✅ coins arrondis modernes
+                            side: const BorderSide(
+                              color: Colors.blueAccent,
+                              width: 1.5,
+                            ), // ✅ bord premium
+                          ),
+                          elevation: 6, // ✅ ombre subtile
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'images/google logo.png',
+                              width: 28,
+                              height: 28,
+                              fit: BoxFit.contain,
+                            ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'LOGIN WITH GOOGLE',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors
+                                    .black, // ✅ texte noir pour contraste sur fond blanc
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+          if (isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.6), // fond semi-transparent
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.deepOrangeAccent,
+                  strokeWidth: 6,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
