@@ -11,7 +11,7 @@ import 'package:rentme/public%20profile/public_profile.dart';
 import 'dart:math' show cos, sqrt, asin;
 
 import 'package:rentme/home/search_by_car.dart';
-import 'package:rentme/home/search_by_location.dart';
+import 'package:rentme/home/search_results.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -151,7 +151,7 @@ class _HomePageState extends State<HomePage> {
                     letterSpacing: 1.1,
                   ),
                 ),
-                backgroundColor: Colors.deepPurpleAccent,
+                backgroundColor: Colors.blueAccent,
                 foregroundColor: Colors.white,
                 elevation: 6,
                 shape: RoundedRectangleBorder(
@@ -363,7 +363,7 @@ class _HomePageState extends State<HomePage> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (_) => SearchByLocation(
+                                            builder: (_) => SearchResults(
                                               country: selectedCountry,
                                               province: selectedProvince,
                                               townhall: selectedTownhall,

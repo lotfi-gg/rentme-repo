@@ -111,7 +111,10 @@ class _PublicProfileState extends State<PublicProfile> {
               ),
             ),
             const SizedBox(height: 10),
-            Text('Ratings: $ratingCount'),
+            Text(
+              'Ratings : $ratingCount',
+              style: TextStyle(color: Colors.white),
+            ),
           ],
         );
       },
@@ -121,7 +124,21 @@ class _PublicProfileState extends State<PublicProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.user.agencyname!)),
+      backgroundColor: Color(0xFF121212),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF121212),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.deepOrangeAccent),
+        title: Text(
+          widget.user.agencyname ?? "Profile",
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
+      ),
+
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _buildFloatingButtons(),
       body: Column(
@@ -129,6 +146,7 @@ class _PublicProfileState extends State<PublicProfile> {
         children: [
           const SizedBox(height: 10),
           CircleAvatar(
+            backgroundColor: Colors.transparent,
             radius: 50,
             child: Image.asset('images/user logo.png', height: 150),
           ),
@@ -138,21 +156,51 @@ class _PublicProfileState extends State<PublicProfile> {
 
           const SizedBox(height: 10),
 
-          NavigationBar(
-            selectedIndex: currentIndex,
-            onDestinationSelected: (value) {
-              setState(() {
-                currentIndex = value;
-                pageController.jumpToPage(value);
-              });
-            },
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Iconsax.car),
-                label: 'Available',
-              ),
-              NavigationDestination(icon: Icon(Iconsax.car5), label: 'Rented'),
-            ],
+          NavigationBarTheme(
+            data: NavigationBarThemeData(
+              backgroundColor: const Color(0xFF1E1E1E),
+              indicatorColor: Colors.deepOrangeAccent.withOpacity(0.25),
+              labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>((
+                states,
+              ) {
+                if (states.contains(MaterialState.selected)) {
+                  return const TextStyle(
+                    color: Colors.deepOrangeAccent, // ✅ selected label color
+                    fontWeight: FontWeight.bold,
+                  );
+                }
+                return const TextStyle(
+                  color: Colors.white70, // ✅ unselected label color
+                );
+              }),
+              iconTheme: MaterialStateProperty.resolveWith<IconThemeData>((
+                states,
+              ) {
+                if (states.contains(MaterialState.selected)) {
+                  return const IconThemeData(color: Colors.deepOrangeAccent);
+                }
+                return const IconThemeData(color: Colors.white70);
+              }),
+            ),
+            child: NavigationBar(
+              selectedIndex: currentIndex,
+              onDestinationSelected: (value) {
+                setState(() {
+                  currentIndex = value;
+                  pageController.jumpToPage(value);
+                });
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Iconsax.car),
+                  label: 'Available',
+                ),
+                NavigationDestination(
+                  icon: Icon(Iconsax.car5),
+                  label: 'Rented',
+                ),
+              ],
+            ),
           ),
 
           Expanded(
@@ -187,6 +235,7 @@ class _PublicProfileState extends State<PublicProfile> {
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.15,
               child: FloatingActionButton(
+                backgroundColor: Colors.orangeAccent,
                 heroTag: "locationBtn",
                 mini: true,
                 onPressed: () async {
@@ -214,7 +263,7 @@ class _PublicProfileState extends State<PublicProfile> {
                     );
                   }
                 },
-                child: const Icon(Icons.location_on, color: Colors.red),
+                child: const Icon(Icons.location_on, color: Colors.white),
               ),
             ),
           ],
@@ -228,6 +277,7 @@ class _PublicProfileState extends State<PublicProfile> {
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.3,
               child: FloatingActionButton.extended(
+                backgroundColor: Colors.greenAccent,
                 heroTag: "callBtn",
                 onPressed: () async {
                   final userDoc = await FirebaseFirestore.instance
@@ -254,6 +304,7 @@ class _PublicProfileState extends State<PublicProfile> {
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.3,
               child: FloatingActionButton.extended(
+                backgroundColor: Colors.blueAccent,
                 heroTag: "commentBtn",
                 onPressed: () {
                   showModalBottomSheet(
@@ -444,7 +495,10 @@ class _PublicProfileState extends State<PublicProfile> {
                   );
                 },
                 icon: const Icon(Icons.messenger_outline),
-                label: const Text('COMMENTS'),
+                label: const Text(
+                  'COMMENTS',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           ],
