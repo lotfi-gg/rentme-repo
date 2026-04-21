@@ -160,10 +160,10 @@ class _PublicProfileState extends State<PublicProfile> {
             data: NavigationBarThemeData(
               backgroundColor: const Color(0xFF1E1E1E),
               indicatorColor: Colors.deepOrangeAccent.withOpacity(0.25),
-              labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>((
+              labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((
                 states,
               ) {
-                if (states.contains(MaterialState.selected)) {
+                if (states.contains(WidgetState.selected)) {
                   return const TextStyle(
                     color: Colors.deepOrangeAccent, // ✅ selected label color
                     fontWeight: FontWeight.bold,
@@ -173,10 +173,10 @@ class _PublicProfileState extends State<PublicProfile> {
                   color: Colors.white70, // ✅ unselected label color
                 );
               }),
-              iconTheme: MaterialStateProperty.resolveWith<IconThemeData>((
+              iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((
                 states,
               ) {
-                if (states.contains(MaterialState.selected)) {
+                if (states.contains(WidgetState.selected)) {
                   return const IconThemeData(color: Colors.deepOrangeAccent);
                 }
                 return const IconThemeData(color: Colors.white70);

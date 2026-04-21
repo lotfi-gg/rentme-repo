@@ -112,17 +112,22 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const CreatePage()),
-                  ).then((_) {
-                    // ✅ After creation, mark in Firestore
-                    FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(FirebaseAuth.instance.currentUser!.uid)
-                        .update({'hasCreated': true});
-                    setState(() {
-                      hasCreated = true;
-                    });
+                  ).then((result) {
+                    if (result == true) {
+                      // ✅ Only mark created if CreatePage returned success
+                      FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(FirebaseAuth.instance.currentUser!.uid)
+                          .set({'hasCreated': true}, SetOptions(merge: true));
+
+                      setState(() {
+                        hasCreated =
+                            true; // ✅ hides the CREATE button immediately
+                      });
+                    }
                   });
                 },
+
                 icon: const Icon(Icons.car_rental_sharp),
                 label: const Text(
                   'CREATE',
@@ -224,7 +229,7 @@ class _HomePageState extends State<HomePage> {
                                           decoration: const InputDecoration(
                                             labelText: "Country",
                                           ),
-                                          value: selectedCountry,
+                                          initialValue: selectedCountry,
                                           items: countries
                                               .map(
                                                 (c) => DropdownMenuItem(
@@ -279,7 +284,7 @@ class _HomePageState extends State<HomePage> {
                                             decoration: const InputDecoration(
                                               labelText: "Province",
                                             ),
-                                            value: selectedProvince,
+                                            initialValue: selectedProvince,
                                             items: provinces
                                                 .map(
                                                   (p) => DropdownMenuItem(
@@ -337,7 +342,7 @@ class _HomePageState extends State<HomePage> {
                                             decoration: const InputDecoration(
                                               labelText: "Townhall",
                                             ),
-                                            value: selectedTownhall,
+                                            initialValue: selectedTownhall,
                                             items: townhalls
                                                 .map(
                                                   (t) => DropdownMenuItem(
@@ -441,27 +446,44 @@ class _HomePageState extends State<HomePage> {
             iconSize: 25,
           ),
           const Spacer(),
-          (me?.isFirstTime ?? true)
-              ? const SizedBox()
-              : InkWell(
-                  borderRadius: BorderRadius.circular(50),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MyProfile(),
+
+          // ✅ Listen to Firestore for current user
+          StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(FirebaseAuth.instance.currentUser!.uid)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || !snapshot.data!.exists) {
+                return const SizedBox();
+              }
+              final userData = snapshot.data!.data() as Map<String, dynamic>;
+              final chatUser = ChatUser.fromJson(userData);
+
+              return (chatUser.isFirstTime ?? true)
+                  ? const SizedBox()
+                  : InkWell(
+                      borderRadius: BorderRadius.circular(50),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MyProfile(),
+                          ),
+                        );
+                      },
+                      child: const CircleAvatar(
+                        backgroundColor: Colors.transparent,
+                        radius: 23,
+                        backgroundImage: AssetImage('images/user logo.png'),
                       ),
                     );
-                  },
-                  child: const CircleAvatar(
-                    backgroundColor: Colors.transparent,
-                    radius: 23,
-                    backgroundImage: AssetImage('images/user logo.png'),
-                  ),
-                ),
+            },
+          ),
           const SizedBox(width: 12),
         ],
       ),
+
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
