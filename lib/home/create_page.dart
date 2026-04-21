@@ -158,12 +158,37 @@ class _CreatePageState extends State<CreatePage> {
                           showDialog(
                             context: context,
                             builder: (ctx) => AlertDialog(
+                              backgroundColor: const Color(0xFF1E1E1E),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              title: const Text("Success"),
+                              title: Row(
+                                children: const [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 36,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    "Agency Created",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
                               content: const Text(
-                                "Your profile has been created successfully!",
+                                "Your agency profile has been created successfully.\n\n"
+                                "You can check your profile by clicking on the top‑left icon on the homepage.",
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                  height: 1.4,
+                                ),
                               ),
                               actions: [
                                 TextButton(
@@ -177,7 +202,8 @@ class _CreatePageState extends State<CreatePage> {
                                   child: const Text(
                                     "OK",
                                     style: TextStyle(
-                                      color: Colors.deepOrangeAccent,
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
