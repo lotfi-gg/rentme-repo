@@ -18,28 +18,33 @@ class _RentedCarsState extends State<RentedCars> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: Card(
-          child: TextField(
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'search ..',
+        automaticallyImplyLeading: false,
+        backgroundColor: const Color(0xFF121212), // ✅ dark app bar
+        elevation: 0,
+        title: SizedBox(
+          width: double.infinity, // ✅ full width search bar
+          child: Card(
+            color: const Color(0xFF1E1E1E), // ✅ dark anthracite background
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            onChanged: (value) {
-              setState(() {
-                search = value.trim().toLowerCase();
-              });
-            },
+            child: TextField(
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.search, color: Colors.white),
+                hintText: 'Search...',
+                hintStyle: TextStyle(color: Colors.grey),
+                border: InputBorder.none,
+              ),
+              onChanged: (value) {
+                setState(() {
+                  search = value.trim().toLowerCase();
+                });
+              },
+            ),
           ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const MyProfile()),
-            );
-          },
         ),
       ),
       body: Column(
@@ -58,7 +63,12 @@ class _RentedCarsState extends State<RentedCars> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("No rented vehicles"));
+                  return const Center(
+                    child: Text(
+                      "No rented vehicles",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
                 }
 
                 final cars = snapshot.data!.docs;

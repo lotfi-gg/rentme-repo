@@ -13,6 +13,8 @@ class _PublicRentedCarsState extends State<PublicRentedCars> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF121212), // dark anthracite
+
       body: Column(
         children: [
           const SizedBox(height: 20),
@@ -29,7 +31,12 @@ class _PublicRentedCarsState extends State<PublicRentedCars> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("No rented vehicles"));
+                  return const Center(
+                    child: Text(
+                      "No rented vehicles",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
                 }
 
                 final cars = snapshot.data!.docs;
@@ -55,11 +62,12 @@ class _PublicRentedCarsState extends State<PublicRentedCars> {
       child: SizedBox(
         height: 150,
         child: Card(
+          color: const Color(0xFF1E1E1E), // ✅ dark card background
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
-          elevation: 5,
-          margin: const EdgeInsets.symmetric(vertical: 5),
+          elevation: 4,
+          margin: const EdgeInsets.symmetric(vertical: 8),
           child: Padding(
             padding: const EdgeInsets.only(right: 10),
             child: Row(
@@ -88,21 +96,40 @@ class _PublicRentedCarsState extends State<PublicRentedCars> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(car['vehiclefullname'] ?? ''),
+                      Text(
+                        car['vehiclefullname'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                       const SizedBox(height: 6),
-                      Text(car['year']?.toString() ?? ''),
+                      Text(
+                        "Year: ${car['year']?.toString() ?? ''}",
+                        style: const TextStyle(color: Colors.grey),
+                      ),
                       const SizedBox(height: 6),
-                      Text(car['transmission'] ?? ''),
+                      Text(
+                        "Transmission: ${car['transmission'] ?? ''}",
+                        style: const TextStyle(color: Colors.grey),
+                      ),
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Text(car['price'] ?? ''),
+                          Text(
+                            "Price: ${car['price'] ?? ''} DA",
+                            style: const TextStyle(
+                              color: Colors.deepOrangeAccent,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const Spacer(),
                           if (car['avaiableIn'] != null)
                             Text(
                               "Total: ${(int.tryParse(car['price'].toString()) ?? 0) * (car['avaiableIn'] as int)} DA",
                               style: const TextStyle(
-                                color: Colors.blue,
+                                color: Colors.blueAccent,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -113,12 +140,15 @@ class _PublicRentedCarsState extends State<PublicRentedCars> {
                         Text(
                           "Rented for ${car['avaiableIn']} day(s)",
                           style: const TextStyle(
-                            color: Colors.red,
+                            color: Colors.redAccent,
                             fontWeight: FontWeight.bold,
                           ),
                         )
                       else
-                        const Text("No rental time set"),
+                        const Text(
+                          "No rental time set",
+                          style: TextStyle(color: Colors.grey),
+                        ),
                     ],
                   ),
                 ),

@@ -1,41 +1,33 @@
 import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class FireStorage {
   final FirebaseStorage fireStorage = FirebaseStorage.instance;
 
-  Future updateprofilepicture({required File file}) async {
-    String uid = FirebaseAuth.instance.currentUser!.uid;
-    String ext = file.path.split('.').last;
-
+  Future<String> updateprofilepicture({required File file}) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final ext = file.path.split('.').last;
     final ref = fireStorage.ref().child(
       'profile/$uid/${DateTime.now().millisecondsSinceEpoch}.$ext',
     );
 
     try {
       await ref.putFile(file);
-      String imageUrl = await ref.getDownloadURL();
+      final imageUrl = await ref.getDownloadURL();
       print('the image url ==> $imageUrl');
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'img': imageUrl,
-      });
+      return imageUrl; // ✅ only return URL
     } catch (e) {
-      print('an error while changing profile image --> $e');
+      print('error while uploading profile image --> $e');
+      return '';
     }
   }
 
   Future<String> uploadCarImage(File imageFile, String carId) async {
     try {
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('cars')
-          .child('$carId.jpg');
-
+      final ref = fireStorage.ref().child('cars/$carId.jpg');
       await ref.putFile(imageFile);
-      return await ref.getDownloadURL(); // ✅ return URL only
+      return await ref.getDownloadURL();
     } catch (e) {
       print('Error uploading car image: $e');
       return '';

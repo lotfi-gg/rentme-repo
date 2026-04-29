@@ -18,20 +18,30 @@ class _AddVehicleState extends State<AddVehicle> {
   TextEditingController year = TextEditingController();
   TextEditingController transmission = TextEditingController();
   TextEditingController price = TextEditingController();
-  TextEditingController status = TextEditingController();
   TextEditingController currancy = TextEditingController();
 
   File? _selectedImage;
+
   Future<void> _showImageSourceDialog() async {
     showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: const Color(0xFF1E1E1E),
       builder: (ctx) {
         return SafeArea(
           child: Wrap(
             children: [
               ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text("Take Photo"),
+                leading: const Icon(
+                  Icons.camera_alt,
+                  color: Colors.deepOrangeAccent,
+                ),
+                title: const Text(
+                  "Take Photo",
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () async {
                   Navigator.of(ctx).pop();
                   final pickedFile = await ImagePicker().pickImage(
@@ -45,8 +55,14 @@ class _AddVehicleState extends State<AddVehicle> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text("Choose from Gallery"),
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: Colors.blueAccent,
+                ),
+                title: const Text(
+                  "Choose from Gallery",
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () async {
                   Navigator.of(ctx).pop();
                   final pickedFile = await ImagePicker().pickImage(
@@ -69,7 +85,17 @@ class _AddVehicleState extends State<AddVehicle> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      backgroundColor: const Color(0xFF121212),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF121212),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.deepOrangeAccent),
+        title: const Text(
+          "Add Vehicle",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -78,11 +104,12 @@ class _AddVehicleState extends State<AddVehicle> {
               key: formstate,
               child: Column(
                 children: [
+                  // ✅ Image container
                   Container(
-                    height: 300,
+                    height: 250,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      color: Colors.grey.shade200,
+                      color: const Color(0xFF1E1E1E),
                       image: _selectedImage != null
                           ? DecorationImage(
                               image: FileImage(_selectedImage!),
@@ -94,83 +121,166 @@ class _AddVehicleState extends State<AddVehicle> {
                             ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
                     onPressed: _showImageSourceDialog,
-                    child: const Text('ADD PHOTO'),
+                    icon: const Icon(Icons.camera_alt, color: Colors.white),
+                    label: const Text(
+                      'ADD PHOTO',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 20,
+                      ),
+                    ),
                   ),
 
-                  const SizedBox(height: 40),
-                  TextFormField(
-                    controller: vehiclefullname,
-                    validator: (value) => value == null || value.trim().isEmpty
-                        ? "field required !"
-                        : null,
-                    decoration: const InputDecoration(
-                      hintText: "Vehicle Full Name",
-                      border: UnderlineInputBorder(),
-                    ),
-                  ),
                   const SizedBox(height: 30),
-                  TextFormField(
-                    controller: year,
-                    validator: (value) => value == null || value.trim().isEmpty
-                        ? "field required !"
-                        : null,
-                    decoration: const InputDecoration(
-                      hintText: "Year",
-                      border: UnderlineInputBorder(),
-                    ),
+                  _buildTextField(vehiclefullname, "Vehicle Full Name"),
+                  const SizedBox(height: 20),
+                  _buildTextField(
+                    year,
+                    "Year",
+                    keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
+
                   DropdownButtonFormField<String>(
+                    style: const TextStyle(
+                      color: Colors.white, // ✅ selected value text
+                      fontWeight: FontWeight.w500,
+                    ),
+                    dropdownColor: const Color(
+                      0xFF1E1E1E,
+                    ), // ✅ dark dropdown background
+                    iconEnabledColor:
+                        Colors.deepOrangeAccent, // ✅ accent color for arrow
                     validator: (value) => value == null || value.trim().isEmpty
-                        ? "field required !"
+                        ? "Field required!"
                         : null,
-                    decoration: const InputDecoration(
-                      labelText: "Transmission",
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xFF1E1E1E),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Colors.deepOrangeAccent,
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 12,
+                      ),
+                    ),
+                    hint: const Text(
+                      "Transmission", // ✅ explicit hint
+                      style: TextStyle(
+                        color: Colors.white,
+                      ), // ✅ force hint text to white
                     ),
                     items: ["Automatic", "Manual"].map((trans) {
                       return DropdownMenuItem<String>(
                         value: trans,
-                        child: Text(trans),
+                        child: Text(
+                          trans,
+                          style: const TextStyle(
+                            color: Colors.white, // ✅ option text color
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) {
                       transmission.text = value ?? '';
                     },
                   ),
-                  const SizedBox(height: 30),
+
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
-                        flex: 2, // give more space to price input
-                        child: TextFormField(
-                          controller: price,
-                          validator: (value) =>
-                              value == null || value.trim().isEmpty
-                              ? "field required !"
-                              : null,
-                          decoration: const InputDecoration(
-                            hintText: "Price in Local Currency",
-                            border: UnderlineInputBorder(),
-                          ),
+                        flex: 2,
+                        child: _buildTextField(
+                          price,
+                          "Price",
                           keyboardType: TextInputType.number,
                         ),
                       ),
-                      const SizedBox(width: 12), // spacing between fields
+                      const SizedBox(width: 12),
                       Expanded(
-                        flex: 1, // less space for currency dropdown
+                        flex: 1,
                         child: DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            labelText: "Currency",
-                            border: UnderlineInputBorder(),
+                          style: const TextStyle(
+                            color: Colors.white, // ✅ selected value text
+                            fontWeight: FontWeight.w500,
+                          ),
+                          dropdownColor: const Color(
+                            0xFF1E1E1E,
+                          ), // ✅ dark dropdown background
+                          iconEnabledColor: Colors
+                              .deepOrangeAccent, // ✅ accent color for arrow
+                          hint: const Text(
+                            "Currency", // ✅ explicit hint
+                            style: TextStyle(
+                              color: Colors.white, // ✅ force hint text to white
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: const Color(0xFF1E1E1E),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Colors.grey),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: Colors.deepOrangeAccent,
+                                width: 2,
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 12,
+                            ),
                           ),
                           items: const [
-                            DropdownMenuItem(value: "DZD", child: Text("DZD")),
-                            DropdownMenuItem(value: "USD", child: Text("USD")),
-                            DropdownMenuItem(value: "EUR", child: Text("EUR")),
-                            DropdownMenuItem(value: "GBP", child: Text("GBP")),
+                            DropdownMenuItem(
+                              value: "DZD",
+                              child: Text(
+                                "DZD",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: "USD",
+                              child: Text(
+                                "USD",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: "EUR",
+                              child: Text(
+                                "EUR",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
                           ],
                           onChanged: (val) {
                             currancy.text = val ?? '';
@@ -182,15 +292,18 @@ class _AddVehicleState extends State<AddVehicle> {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 30),
-                  ElevatedButton(
+                  ElevatedButton.icon(
                     onPressed: () async {
                       if (formstate.currentState!.validate()) {
                         if (_selectedImage == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
+                              backgroundColor: Color(0xFF1E1E1E),
                               content: Text(
                                 "Please add a photo before creating the car",
+                                style: TextStyle(color: Colors.white),
                               ),
                             ),
                           );
@@ -233,13 +346,11 @@ class _AddVehicleState extends State<AddVehicle> {
                                 'transmission': transmission.text,
                                 'price': price.text,
                                 'img': imgUrl,
-                                'status':
-                                    'Available', // ✅ toujours Available au départ
+                                'status': 'Available',
                                 'rentedAt': null,
                                 'endTime': null,
                                 'currancy': currancy.text,
                               });
-
 
                           Navigator.pushReplacement(
                             context,
@@ -247,14 +358,36 @@ class _AddVehicleState extends State<AddVehicle> {
                               builder: (context) => const MyVehicles(),
                             ),
                           );
-
-                          print('Car created with image -----------');
                         } catch (e) {
-                          print('Error while creating car ======> $e');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Colors.redAccent,
+                              content: Text(
+                                "Error while creating car: $e",
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          );
                         }
                       }
                     },
-                    child: const Text('ADD'),
+                    icon: const Icon(Icons.check, color: Colors.white),
+                    label: const Text(
+                      'ADD VEHICLE',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepOrangeAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 6,
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
                   ),
                 ],
               ),
@@ -262,6 +395,41 @@ class _AddVehicleState extends State<AddVehicle> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    String hint, {
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      validator: (value) =>
+          value == null || value.trim().isEmpty ? "Field required!" : null,
+      style: const TextStyle(color: Colors.white),
+      decoration: _inputDecoration(hint),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Colors.white),
+      filled: true,
+      fillColor: const Color(0xFF1E1E1E), // ✅ dark anthracite background
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(
+          color: Colors.deepOrangeAccent, // ✅ premium accent color
+          width: 2,
+        ),
+      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
     );
   }
 }

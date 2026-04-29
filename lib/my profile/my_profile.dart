@@ -165,8 +165,25 @@ class _MyProfileState extends State<MyProfile> {
         backgroundColor: const Color(0xFF121212),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.orange),
-          onPressed: () {
-            Navigator.push(
+          onPressed: () async {
+            // Show loading dialog
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.deepOrangeAccent, // premium accent
+                  ),
+                );
+              },
+            );
+
+            // Optional: simulate a small delay or wait for async work
+            await Future.delayed(const Duration(milliseconds: 200));
+
+            // Navigate back to HomePage
+            await Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const HomePage()),
             ).then((result) {
@@ -174,6 +191,11 @@ class _MyProfileState extends State<MyProfile> {
                 _reloadUser(); // refresh Firestore data
               }
             });
+
+            // Close loading dialog after navigation
+            if (mounted) {
+              Navigator.pop(context);
+            }
           },
         ),
       ),
@@ -197,11 +219,13 @@ class _MyProfileState extends State<MyProfile> {
                       backgroundColor: Colors.transparent,
                       radius: 70,
                       backgroundImage: _img.isNotEmpty
-                          ? FileImage(File(_img))
+                          ? NetworkImage(_img) // ✅ always use URL
                           : (me?.img != null && me!.img!.isNotEmpty
                                 ? NetworkImage(me!.img!)
                                 : const AssetImage('images/user logo.png')),
                     ),
+
+
                     Positioned(
                       bottom: -5,
                       right: -5,
@@ -223,12 +247,26 @@ class _MyProfileState extends State<MyProfile> {
                                               source: ImageSource.gallery,
                                             );
                                         if (image != null) {
-                                          setState(() {
-                                            _img = image.path;
-                                          });
-                                          FireStorage().updateprofilepicture(
-                                            file: File(image.path),
-                                          );
+                                          final downloadUrl =
+                                              await FireStorage()
+                                                  .updateprofilepicture(
+                                                    file: File(image.path),
+                                                  );
+                                          if (downloadUrl.isNotEmpty) {
+                                            await FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(
+                                                  FirebaseAuth
+                                                      .instance
+                                                      .currentUser!
+                                                      .uid,
+                                                )
+                                                .update({'img': downloadUrl});
+                                            setState(() {
+                                              _img =
+                                                  downloadUrl; // ✅ use URL for CircleAvatar
+                                            });
+                                          }
                                         }
                                       },
                                     ),
@@ -242,12 +280,25 @@ class _MyProfileState extends State<MyProfile> {
                                               source: ImageSource.camera,
                                             );
                                         if (image != null) {
-                                          setState(() {
-                                            _img = image.path;
-                                          });
-                                          FireStorage().updateprofilepicture(
-                                            file: File(image.path),
-                                          );
+                                          final downloadUrl =
+                                              await FireStorage()
+                                                  .updateprofilepicture(
+                                                    file: File(image.path),
+                                                  );
+                                          if (downloadUrl.isNotEmpty) {
+                                            await FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(
+                                                  FirebaseAuth
+                                                      .instance
+                                                      .currentUser!
+                                                      .uid,
+                                                )
+                                                .update({'img': downloadUrl});
+                                            setState(() {
+                                              _img = downloadUrl;
+                                            });
+                                          }
                                         }
                                       },
                                     ),
@@ -259,6 +310,8 @@ class _MyProfileState extends State<MyProfile> {
                         },
                         icon: const Icon(Iconsax.edit),
                       ),
+
+
                     ),
                   ],
                 ),

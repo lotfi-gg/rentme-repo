@@ -19,43 +19,63 @@ class _AvaiableCarsState extends State<AvaiableCars> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF121212),
       floatingActionButton: SizedBox(
-        width: 150,
+        width: 180, // ✅ slightly larger for importance
         child: FloatingActionButton.extended(
+          heroTag: "addVehicleBtn",
+          backgroundColor: Colors.deepOrangeAccent, // ✅ premium accent color
+          foregroundColor: Colors.white,
+          elevation: 6, // ✅ subtle shadow for depth
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16), // ✅ smooth rounded corners
+          ),
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AddVehicle()),
             );
           },
-          icon: const Icon(Icons.add),
-          label: const Text('ADD VEHICLE'),
-        ),
-      ),
-      appBar: AppBar(
-        title: Card(
-          child: TextField(
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'search ..',
+          icon: const Icon(Icons.add, size: 22),
+          label: const Text(
+            'ADD VEHICLE',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2, // ✅ spacing for premium look
             ),
-            onChanged: (value) {
-              setState(() {
-                search = value.trim().toLowerCase();
-              });
-            },
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const MyProfile()),
-            );
-          },
+      ),
+
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: const Color(0xFF121212), // ✅ dark app bar
+        elevation: 0,
+        title: SizedBox(
+          width: double.infinity, // ✅ full width search bar
+          child: Card(
+            color: const Color(0xFF1E1E1E), // ✅ dark anthracite background
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: TextField(
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.search, color: Colors.white),
+                hintText: 'Search...',
+                hintStyle: TextStyle(color: Colors.grey),
+                border: InputBorder.none,
+              ),
+              onChanged: (value) {
+                setState(() {
+                  search = value.trim().toLowerCase();
+                });
+              },
+            ),
+          ),
         ),
       ),
+
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -73,7 +93,12 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("No available vehicles"));
+                  return const Center(
+                    child: Text(
+                      "No available vehicles",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
                 }
 
                 final cars = snapshot.data!.docs;
@@ -185,7 +210,9 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                                 .uid,
                                           )
                                           .update({'fcmToken': token});
-                                      print("FCM Token enregistré:==========> $token");
+                                      print(
+                                        "FCM Token enregistré:==========> $token",
+                                      );
                                     }
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -232,7 +259,6 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                       ),
                                     ),
                                   );
-                                  
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text("Error: $e")),

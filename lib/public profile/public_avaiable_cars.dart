@@ -1,12 +1,12 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
- 
+
 import 'package:flutter/material.dart';
 import 'package:rentme/models/user_model.dart';
 
 class PublicAvaiableCars extends StatefulWidget {
   final ChatUser user;
-  const PublicAvaiableCars({super.key,required this.user});
+  const PublicAvaiableCars({super.key, required this.user});
 
   @override
   State<PublicAvaiableCars> createState() => _PublicAvaiableCarsState();
@@ -16,6 +16,7 @@ class _PublicAvaiableCarsState extends State<PublicAvaiableCars> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF121212), // dark anthracite
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -36,7 +37,12 @@ class _PublicAvaiableCarsState extends State<PublicAvaiableCars> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("No available vehicles" ));
+                  return const Center(
+                    child: Text(
+                      "No available vehicles",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
                 }
 
                 final cars = snapshot.data!.docs;
@@ -63,12 +69,15 @@ class _PublicAvaiableCarsState extends State<PublicAvaiableCars> {
       child: SizedBox(
         height: 150,
         child: Card(
+          color: const Color(0xFF1E1E1E), // dark card background
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
           elevation: 5,
           margin: const EdgeInsets.symmetric(vertical: 5),
           child: InkWell(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
             borderRadius: BorderRadius.circular(25),
             onTap: () {
               AwesomeDialog(
@@ -176,13 +185,33 @@ class _PublicAvaiableCarsState extends State<PublicAvaiableCars> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(car['vehiclefullname'] ?? ''),
+                        Text(
+                          car['vehiclefullname'] ?? '',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                         const SizedBox(height: 6),
-                        Text(car['year']?.toString() ?? ''),
-                        const SizedBox(height: 6),
-                        Text(car['transmission'] ?? ''),
-                        const SizedBox(height: 6),
-                        Text(car['price'] ?? ''),
+                        Text(
+                          "Year: ${car['year'] ?? ''}",
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        Text(
+                          "Transmission: ${car['transmission'] ?? ''}",
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        Text(
+                          "Price: ${car['price'] ?? ''} DA",
+                          style: const TextStyle(
+                            color: Colors.deepOrangeAccent,
+                          ),
+                        ),
+                        Text(
+                          "${car['status'] ?? 'Available'}",
+                          style: const TextStyle(color: Colors.grey),
+                        ),
                       ],
                     ),
                   ),

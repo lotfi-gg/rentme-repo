@@ -464,18 +464,46 @@ class _HomePageState extends State<HomePage> {
                   ? const SizedBox()
                   : InkWell(
                       borderRadius: BorderRadius.circular(50),
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        // Show loading dialog
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.deepOrangeAccent, // accent color
+                              ),
+                            );
+                          },
+                        );
+
+                        // Optional: simulate delay or wait for async work
+                        await Future.delayed(const Duration(milliseconds: 500));
+
+                        // Navigate to MyProfile
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const MyProfile(),
                           ),
                         );
+
+                        // Close loading dialog after navigation
+                        if (mounted) {
+                          Navigator.pop(context);
+                        }
                       },
-                      child: const CircleAvatar(
+                      child: CircleAvatar(
                         backgroundColor: Colors.transparent,
                         radius: 23,
-                        backgroundImage: AssetImage('images/user logo.png'),
+                        backgroundImage:
+                            (chatUser.img != null && chatUser.img!.isNotEmpty)
+                            ? NetworkImage(
+                                chatUser.img!,
+                              ) // ✅ show Firestore profile picture
+                            : const AssetImage('images/user logo.png')
+                                  as ImageProvider,
                       ),
                     );
             },
@@ -500,7 +528,12 @@ class _HomePageState extends State<HomePage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("No users found"));
+            return const Center(
+              child: Text(
+                "No users found",
+                style: TextStyle(color: Colors.white),
+              ),
+            );
           }
 
           // ✅ Build users list
@@ -569,15 +602,36 @@ class _HomePageState extends State<HomePage> {
                               splashColor:
                                   Colors.transparent, // ✅ pas d’effet splash
                               highlightColor: Colors.transparent,
-                              onTap: () {
-                                Navigator.push(
+                              onTap: () async {
+                                // Show loading dialog
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) {
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  },
+                                );
+
+                                // Simulate a small delay or perform async work if needed
+                                await Future.delayed(
+                                  const Duration(seconds: 1),
+                                );
+
+                                // Navigate to PublicProfile
+                                await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         PublicProfile(user: user),
                                   ),
                                 );
+
+                                // Close the loading dialog after navigation
+                                Navigator.pop(context);
                               },
+
                               child: Row(
                                 children: [
                                   ClipRRect(
@@ -698,14 +752,36 @@ class _HomePageState extends State<HomePage> {
                         splashColor: Colors.transparent, // ✅ pas d’effet splash
                         highlightColor:
                             Colors.transparent, // ✅ pas d’effet highlight
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          // Show loading dialog
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) {
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  color:
+                                      Colors.deepOrangeAccent, // premium accent
+                                ),
+                              );
+                            },
+                          );
+
+                          // Optional: simulate delay or wait for async work
+                          await Future.delayed(const Duration(seconds: 1));
+
+                          // Navigate to PublicProfile
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => PublicProfile(user: user),
+                              builder: (context) => PublicProfile(user: user),
                             ),
                           );
+
+                          // Close the loading dialog after navigation
+                          Navigator.pop(context);
                         },
+
                         child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,

@@ -23,35 +23,69 @@ class _PublicProfileState extends State<PublicProfile> {
   PageController pageController = PageController();
   int currentIndex = 0;
 
+  @override
+  void dispose() {
+    pageController.dispose();
+    comment.dispose();
+    super.dispose();
+  }
+
   void _showRatingDialog(BuildContext context) {
     int selectedStars = 0;
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Rate this service"),
+          backgroundColor: const Color(0xFF1E1E1E), // ✅ dark theme
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16), // ✅ smooth corners
+          ),
+          title: const Text(
+            "Rate this service",
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
           content: StatefulBuilder(
             builder: (context, setState) {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(5, (index) {
-                  return IconButton(
-                    icon: Icon(
-                      index < selectedStars ? Icons.star : Icons.star_border,
-                      color: Colors.amber,
-                    ),
-                    onPressed: () {
+                  return GestureDetector(
+                    onTap: () {
                       setState(() {
                         selectedStars = index + 1;
                       });
                     },
+                    child: Icon(
+                      index < selectedStars ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                      size: 36, // ✅ slightly larger for emphasis
+                    ),
                   );
                 }),
               );
             },
           ),
+          actionsAlignment: MainAxisAlignment.center,
           actions: [
             TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[300], // ✅ cancel button style
+              ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepOrangeAccent, // ✅ accent color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
               onPressed: () async {
                 final currentUser = FirebaseAuth.instance.currentUser!;
                 await FirebaseFirestore.instance
@@ -63,9 +97,26 @@ class _PublicProfileState extends State<PublicProfile> {
                       'stars': selectedStars,
                       'createdAt': FieldValue.serverTimestamp(),
                     });
-                Navigator.pop(context);
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: const Color(0xFF1E1E1E),
+                      content: Text(
+                        "Thanks for rating $selectedStars star(s)!",
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  );
+                }
               },
-              child: const Text("Submit"),
+              child: const Text(
+                "Submit",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ],
         );
@@ -97,18 +148,18 @@ class _PublicProfileState extends State<PublicProfile> {
 
         return Column(
           children: [
-            InkWell(
-              onTap: () => _showRatingDialog(context),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  return Icon(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return GestureDetector(
+                  onTap: () => _showRatingDialog(context),
+                  child: Icon(
                     index < avgRating.round() ? Icons.star : Icons.star_border,
                     color: Colors.amber,
                     size: 30,
-                  );
-                }),
-              ),
+                  ),
+                );
+              }),
             ),
             const SizedBox(height: 10),
             Text(
@@ -185,6 +236,7 @@ class _PublicProfileState extends State<PublicProfile> {
             child: NavigationBar(
               selectedIndex: currentIndex,
               onDestinationSelected: (value) {
+                if (!mounted) return;
                 setState(() {
                   currentIndex = value;
                   pageController.jumpToPage(value);
@@ -251,6 +303,7 @@ class _PublicProfileState extends State<PublicProfile> {
                         mode: LaunchMode.externalApplication,
                       );
                     } catch (e) {
+                      if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text("Could not open location"),
@@ -258,6 +311,7 @@ class _PublicProfileState extends State<PublicProfile> {
                       );
                     }
                   } else {
+                    if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("No location available")),
                     );
@@ -310,6 +364,9 @@ class _PublicProfileState extends State<PublicProfile> {
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
+                    backgroundColor: const Color(
+                      0xFF1E1E1E,
+                    ), // ✅ dark anthracite background
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(
                         top: Radius.circular(25),
@@ -328,9 +385,12 @@ class _PublicProfileState extends State<PublicProfile> {
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
+                                    color: Colors.white, // ✅ white title
                                   ),
                                 ),
                                 const SizedBox(height: 10),
+
+                                // ✅ Comments list
                                 Expanded(
                                   child: StreamBuilder<QuerySnapshot>(
                                     stream: FirebaseFirestore.instance
@@ -349,7 +409,12 @@ class _PublicProfileState extends State<PublicProfile> {
                                       if (!snapshot.hasData ||
                                           snapshot.data!.docs.isEmpty) {
                                         return const Center(
-                                          child: Text("No comments yet"),
+                                          child: Text(
+                                            "No comments yet",
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                            ),
+                                          ),
                                         );
                                       }
 
@@ -370,6 +435,7 @@ class _PublicProfileState extends State<PublicProfile> {
                                               'dd/MM/yyyy HH:mm',
                                             ).format(dt);
                                           }
+
                                           return Column(
                                             children: [
                                               ListTile(
@@ -383,13 +449,23 @@ class _PublicProfileState extends State<PublicProfile> {
                                                             ),
                                                       )
                                                     : const CircleAvatar(
+                                                        backgroundColor: Colors
+                                                            .deepOrangeAccent,
                                                         child: Icon(
                                                           Icons.person,
+                                                          color: Colors.white,
                                                         ),
                                                       ),
                                                 title: Row(
                                                   children: [
-                                                    Text(data['commenterName']),
+                                                    Text(
+                                                      data['commenterName'],
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
                                                     const Spacer(),
                                                     Text(
                                                       formattedDate,
@@ -402,9 +478,15 @@ class _PublicProfileState extends State<PublicProfile> {
                                                 ),
                                                 subtitle: Text(
                                                   data['text'] ?? '',
+                                                  style: const TextStyle(
+                                                    color: Colors.white70,
+                                                  ),
                                                 ),
                                               ),
-                                              const Divider(thickness: 1),
+                                              Divider(
+                                                color: Colors.grey.shade800,
+                                                thickness: 1,
+                                              ),
                                             ],
                                           );
                                         },
@@ -412,6 +494,8 @@ class _PublicProfileState extends State<PublicProfile> {
                                     },
                                   ),
                                 ),
+
+                                // ✅ Comment input
                                 Row(
                                   children: [
                                     Expanded(
@@ -426,11 +510,20 @@ class _PublicProfileState extends State<PublicProfile> {
                                             return null;
                                           },
                                           controller: comment,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
                                           decoration: InputDecoration(
                                             hintText: "Add a comment...",
+                                            hintStyle: const TextStyle(
+                                              color: Colors.white54,
+                                            ),
+                                            filled: true,
+                                            fillColor: const Color(0xFF2A2A2A),
                                             border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(15),
+                                              borderSide: BorderSide.none,
                                             ),
                                           ),
                                         ),
@@ -438,6 +531,16 @@ class _PublicProfileState extends State<PublicProfile> {
                                     ),
                                     const SizedBox(width: 8),
                                     ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            Colors.deepOrangeAccent,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.all(14),
+                                      ),
                                       onPressed: () async {
                                         if (formstate.currentState!
                                             .validate()) {
@@ -471,18 +574,28 @@ class _PublicProfileState extends State<PublicProfile> {
                                               });
 
                                           comment.clear();
+                                          if (!mounted) return;
                                           ScaffoldMessenger.of(
                                             context,
                                           ).showSnackBar(
                                             const SnackBar(
+                                              backgroundColor: Color(
+                                                0xFF1E1E1E,
+                                              ),
                                               content: Text(
                                                 "Comment submitted",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
                                               ),
                                             ),
                                           );
                                         }
                                       },
-                                      child: const Icon(Icons.send),
+                                      child: const Icon(
+                                        Icons.send,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -494,7 +607,7 @@ class _PublicProfileState extends State<PublicProfile> {
                     },
                   );
                 },
-                icon: const Icon(Icons.messenger_outline),
+                icon: const Icon(Icons.messenger_outline, color: Colors.white),
                 label: const Text(
                   'COMMENTS',
                   style: TextStyle(color: Colors.white),
