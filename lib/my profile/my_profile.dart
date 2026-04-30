@@ -225,7 +225,6 @@ class _MyProfileState extends State<MyProfile> {
                                 : const AssetImage('images/user logo.png')),
                     ),
 
-
                     Positioned(
                       bottom: -5,
                       right: -5,
@@ -310,8 +309,6 @@ class _MyProfileState extends State<MyProfile> {
                         },
                         icon: const Icon(Iconsax.edit),
                       ),
-
-
                     ),
                   ],
                 ),
@@ -381,10 +378,6 @@ class _MyProfileState extends State<MyProfile> {
                     fillColor: Colors.grey.shade900,
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.grey.shade800,
-                        width: 1,
-                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -428,10 +421,6 @@ class _MyProfileState extends State<MyProfile> {
                     fillColor: Colors.grey.shade900, // subtle dark background
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.grey.shade800,
-                        width: 1,
-                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -475,10 +464,6 @@ class _MyProfileState extends State<MyProfile> {
                     fillColor: Colors.grey.shade900, // subtle dark background
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.grey.shade800,
-                        width: 1,
-                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -522,10 +507,6 @@ class _MyProfileState extends State<MyProfile> {
                     fillColor: Colors.grey.shade900, // subtle dark background
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.grey.shade800,
-                        width: 1,
-                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -569,10 +550,6 @@ class _MyProfileState extends State<MyProfile> {
                     fillColor: Colors.grey.shade900, // subtle dark background
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.grey.shade800,
-                        width: 1,
-                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -616,10 +593,6 @@ class _MyProfileState extends State<MyProfile> {
                     fillColor: Colors.grey.shade900, // subtle dark background
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.grey.shade800,
-                        width: 1,
-                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),

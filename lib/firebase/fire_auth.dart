@@ -75,9 +75,8 @@ class FireCar {
     String year,
     String transmission,
     String price,
-
     String img,
-    String currancy,
+    String currency, // ✅ spelling fixed
   ) async {
     User user = auth.currentUser!;
     CarInfo carInfo = CarInfo(
@@ -88,6 +87,7 @@ class FireCar {
       price: price,
       img: img,
       NameAndYear: "$vehiclefullname $year",
+      currency: currency, // ✅ now included in the model
     );
 
     await firebaseFirestore

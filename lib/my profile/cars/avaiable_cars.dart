@@ -1,10 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:rentme/my%20profile/cars/add_vehicle.dart';
 import 'package:rentme/my%20profile/cars/edit_vehicle.dart';
-import 'package:rentme/my%20profile/my_profile.dart';
 
 class AvaiableCars extends StatefulWidget {
   const AvaiableCars({super.key});
@@ -148,33 +146,55 @@ class _AvaiableCarsState extends State<AvaiableCars> {
           children: [
             Card(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(20),
               ),
-              elevation: 5,
-              margin: const EdgeInsets.symmetric(vertical: 5),
+              elevation: 6,
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              color: const Color(0xFF1E1E1E), // ✅ premium dark background
               child: InkWell(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(20),
                 onLongPress: () {
                   showDialog(
                     barrierDismissible: false,
                     context: context,
                     builder: (context) {
                       int? selectedDays;
-
                       return AlertDialog(
-                        title: const Text("Rent Car"),
+                        backgroundColor: const Color(0xFF1E1E1E),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        title: const Text(
+                          "Rent Car",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Text(
                               "How many days do you want to rent this car?",
+                              style: TextStyle(color: Colors.white70),
                             ),
                             const SizedBox(height: 12),
                             TextField(
                               keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: "Number of days",
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                hint: Text(
+                                  "Number of days",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                labelStyle: const TextStyle(
+                                  color: Colors.white70,
+                                ),
+                                filled: true,
+                                fillColor: const Color(0xFF2A2A2A),
                               ),
                               onChanged: (value) {
                                 selectedDays = int.tryParse(value);
@@ -185,47 +205,33 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text("Cancel"),
+                            child: const Text(
+                              "Cancel",
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
                           ),
                           ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepOrangeAccent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                             onPressed: () async {
                               if (selectedDays != null && selectedDays! > 0) {
                                 try {
-                                  // 🔔 Vérifier et demander l'accès aux notifications
-                                  FirebaseMessaging messaging =
-                                      FirebaseMessaging.instance;
-                                  NotificationSettings settings =
-                                      await messaging.requestPermission();
-
-                                  if (settings.authorizationStatus ==
-                                      AuthorizationStatus.authorized) {
-                                    String? token = await messaging.getToken();
-                                    if (token != null) {
-                                      await FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(
-                                            FirebaseAuth
-                                                .instance
-                                                .currentUser!
-                                                .uid,
-                                          )
-                                          .update({'fcmToken': token});
-                                      print(
-                                        "FCM Token enregistré:==========> $token",
-                                      );
-                                    }
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Notifications not allowed",
+                                  // 🔑 Update car status
+                                  await FirebaseFirestore.instance
+                                      .collection('cars')
+                                      .doc(car['id'])
+                                      .update({
+                                        'status': 'Rented',
+                                        'rentedAt': DateTime.now(),
+                                        'endTime': DateTime.now().add(
+                                          Duration(days: selectedDays!),
                                         ),
-                                      ),
-                                    );
-                                    return; // ⚠️ Stop si pas de permission
-                                  }
+                                      });
 
-                                  // 🔑 Mise à jour du statut de la voiture
                                   await FirebaseFirestore.instance
                                       .collection('users')
                                       .doc(
@@ -237,37 +243,37 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                         'status': 'Rented',
                                         'rentedAt': DateTime.now(),
                                         'endTime': DateTime.now().add(
-                                          Duration(seconds: selectedDays!),
-                                        ),
-                                      });
-
-                                  await FirebaseFirestore.instance
-                                      .collection('cars')
-                                      .doc(car['id'])
-                                      .update({
-                                        'status': 'Rented',
-                                        'rentedAt': DateTime.now(),
-                                        'endTime': DateTime.now().add(
-                                          Duration(seconds: selectedDays!),
+                                          Duration(days: selectedDays!),
                                         ),
                                       });
 
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
+                                      backgroundColor:
+                                          Colors.greenAccent.shade700,
                                       content: Text(
                                         "Car rented for $selectedDays day(s) successfully",
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
                                   );
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text("Error: $e")),
+                                    SnackBar(
+                                      backgroundColor: Colors.redAccent,
+                                      content: Text("Error: $e"),
+                                    ),
                                   );
                                 }
                                 Navigator.pop(context);
                               }
                             },
-                            child: const Text("Confirm"),
+                            child: const Text(
+                              "Confirm",
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ],
                       );
@@ -283,24 +289,24 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                   );
                 },
                 child: Padding(
-                  padding: const EdgeInsets.only(right: 10),
+                  padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
                       ClipRRect(
                         borderRadius: const BorderRadius.horizontal(
-                          left: Radius.circular(25),
+                          left: Radius.circular(20),
                         ),
                         child: car['img'] != null && car['img'] != ''
                             ? Image.network(
                                 car['img'],
-                                height: double.infinity,
-                                width: 200,
+                                height: 120,
+                                width: 120,
                                 fit: BoxFit.cover,
                               )
                             : Image.asset(
                                 'images/car.png',
-                                height: double.infinity,
-                                width: 200,
+                                height: 120,
+                                width: 120,
                                 fit: BoxFit.cover,
                               ),
                       ),
@@ -310,13 +316,32 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(car['vehiclefullname'] ?? ''),
+                            Text(
+                              car['vehiclefullname'] ?? '',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(height: 6),
-                            Text(car['year']?.toString() ?? ''),
+                            Text(
+                              "Year: ${car['year']?.toString() ?? ''}",
+                              style: const TextStyle(color: Colors.grey),
+                            ),
                             const SizedBox(height: 6),
-                            Text(car['transmission'] ?? ''),
+                            Text(
+                              "Transmission: ${car['transmission'] ?? ''}",
+                              style: const TextStyle(color: Colors.grey),
+                            ),
                             const SizedBox(height: 6),
-                            Text(car['price'] ?? ''),
+                            Text(
+                              "Price: ${car['price'] ?? ''} ${car['currency'] ?? ''}",
+                              style: const TextStyle(
+                                color: Colors.deepOrangeAccent,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -325,6 +350,7 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                 ),
               ),
             ),
+
             // ✅ Trash icon overlay
             Positioned(
               top: 8,
@@ -333,51 +359,105 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                 icon: const Icon(Icons.delete, color: Colors.red),
                 onPressed: () {
                   showDialog(
+                    barrierDismissible: false,
                     context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text("Delete Car"),
-                      content: const Text(
-                        "Are you sure you want to delete this car?",
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text("Cancel"),
+                    builder: (context) {
+                      return AlertDialog(
+                        backgroundColor: const Color(
+                          0xFF1E1E1E,
+                        ), // ✅ dark background
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                        title: const Text(
+                          "Delete Car",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
-                          onPressed: () async {
-                            try {
-                              await FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                                  .collection('cars')
-                                  .doc(car['id'])
-                                  .delete();
-
-                              await FirebaseFirestore.instance
-                                  .collection('cars')
-                                  .doc(car['id'])
-                                  .delete();
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Car deleted successfully"),
-                                ),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text("Error: $e")),
-                              );
-                            }
-                            Navigator.pop(context);
-                          },
-                          child: const Text("Delete"),
                         ),
-                      ],
-                    ),
+                        content: const Text(
+                          "Are you sure you want to delete this car?",
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text(
+                              "Cancel",
+                              style: TextStyle(color: Colors.blueAccent),
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () async {
+                              try {
+                                // ✅ Show loading spinner while deleting
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) => const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.redAccent,
+                                    ),
+                                  ),
+                                );
+
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(FirebaseAuth.instance.currentUser!.uid)
+                                    .collection('cars')
+                                    .doc(car['id'])
+                                    .delete();
+
+                                await FirebaseFirestore.instance
+                                    .collection('cars')
+                                    .doc(car['id'])
+                                    .delete();
+
+                                if (mounted) {
+                                  Navigator.pop(
+                                    context,
+                                  ); // close loading spinner
+                                }
+                                Navigator.pop(context); // close delete dialog
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    backgroundColor: Colors.green,
+                                    content: Text(
+                                      "Car deleted successfully",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                );
+                              } catch (e) {
+                                if (mounted) {
+                                  Navigator.pop(
+                                    context,
+                                  ); // close loading spinner
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: Colors.redAccent,
+                                    content: Text("Error: $e"),
+                                  ),
+                                );
+                              }
+                            },
+                            child: const Text(
+                              "Delete",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),

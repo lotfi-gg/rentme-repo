@@ -128,17 +128,23 @@ class _CreatePageState extends State<CreatePage> {
                   ElevatedButton(
                     onPressed: () async {
                       if (formstate.currentState!.validate()) {
-                        setState(() => _isLoading = true); // show loader
+                        setState(() => _isLoading = true);
                         try {
                           await FirebaseAuth.instance.currentUser!
                               .updateDisplayName(username.text)
                               .then(
                                 (value) => FireAuth.createUser(
-                                  phonenumber.text,
-                                  agencyname.text,
-                                  country.text,
-                                  province.text,
-                                  townhall.text,
+                                  phonenumber.text.trim(),
+                                  agencyname.text.trim(),
+                                  country.text
+                                      .trim()
+                                      .toLowerCase(), // ✅ normalize
+                                  province.text
+                                      .trim()
+                                      .toLowerCase(), // ✅ normalize
+                                  townhall.text
+                                      .trim()
+                                      .toLowerCase(), // ✅ normalize
                                 ),
                               );
 
@@ -152,9 +158,8 @@ class _CreatePageState extends State<CreatePage> {
                           final prefs = await SharedPreferences.getInstance();
                           await prefs.setBool('isFirstTime', false);
 
-                          setState(() => _isLoading = false); // hide loader
+                          setState(() => _isLoading = false);
 
-                          // ✅ Show success dialog
                           showDialog(
                             context: context,
                             builder: (ctx) => AlertDialog(
@@ -193,11 +198,8 @@ class _CreatePageState extends State<CreatePage> {
                               actions: [
                                 TextButton(
                                   onPressed: () {
-                                    Navigator.pop(ctx); // close dialog
-                                    Navigator.pop(
-                                      context,
-                                      true,
-                                    ); // return success
+                                    Navigator.pop(ctx);
+                                    Navigator.pop(context, true);
                                   },
                                   child: const Text(
                                     "OK",
@@ -211,7 +213,7 @@ class _CreatePageState extends State<CreatePage> {
                             ),
                           );
                         } catch (e) {
-                          setState(() => _isLoading = false); // hide loader
+                          setState(() => _isLoading = false);
                           ScaffoldMessenger.of(
                             context,
                           ).showSnackBar(SnackBar(content: Text('Error: $e')));

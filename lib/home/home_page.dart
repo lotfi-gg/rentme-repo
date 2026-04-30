@@ -4,26 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:rentme/auth.dart';
 import 'package:rentme/home/create_page.dart';
 import 'package:rentme/models/user_model.dart';
-import 'package:rentme/my%20profile/my_profile.dart';
-import 'package:rentme/public%20profile/public_profile.dart';
+import 'package:rentme/my profile/my_profile.dart';
+import 'package:rentme/public profile/public_profile.dart';
 import 'dart:math' show cos, sqrt, asin;
-
 import 'package:rentme/home/search_by_car.dart';
 import 'package:rentme/home/search_results.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
   bool randomMode = true;
-  bool hasCreated = false; // ✅ track if user already created
+  bool hasCreated = false;
   ChatUser? me;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -36,22 +36,26 @@ class _HomePageState extends State<HomePage> {
           if (doc.exists) {
             setState(() {
               me = ChatUser.fromJson(doc.data()!);
-              // ✅ check if user hasCreated flag exists
               hasCreated = doc.data()!.containsKey('hasCreated')
                   ? doc['hasCreated'] as bool
                   : false;
+              isLoading = false;
+            });
+          } else {
+            setState(() {
+              isLoading = false;
             });
           }
         });
   }
 
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const p = 0.017453292519943295; // pi/180
+    const p = 0.017453292519943295;
     final a =
         0.5 -
         cos((lat2 - lat1) * p) / 2 +
         cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
-    return 12742 * asin(sqrt(a)); // distance in km
+    return 12742 * asin(sqrt(a));
   }
 
   @override
@@ -62,7 +66,6 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Nearby / Random toggle
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.35,
             child: FloatingActionButton.extended(
@@ -93,11 +96,17 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-
           SizedBox(width: MediaQuery.of(context).size.width * 0.2),
-
-          // ✅ Only show CREATE if user has not created yet
-          if (!hasCreated)
+          if (isLoading)
+            const SizedBox(
+              width: 35,
+              height: 35,
+              child: CircularProgressIndicator(
+                color: Colors.deepOrangeAccent,
+                strokeWidth: 3,
+              ),
+            )
+          else if (!hasCreated)
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.35,
               child: FloatingActionButton.extended(
@@ -114,20 +123,16 @@ class _HomePageState extends State<HomePage> {
                     MaterialPageRoute(builder: (context) => const CreatePage()),
                   ).then((result) {
                     if (result == true) {
-                      // ✅ Only mark created if CreatePage returned success
                       FirebaseFirestore.instance
                           .collection('users')
                           .doc(FirebaseAuth.instance.currentUser!.uid)
                           .set({'hasCreated': true}, SetOptions(merge: true));
-
                       setState(() {
-                        hasCreated =
-                            true; // ✅ hides the CREATE button immediately
+                        hasCreated = true;
                       });
                     }
                   });
                 },
-
                 icon: const Icon(Icons.car_rental_sharp),
                 label: const Text(
                   'CREATE',
@@ -140,7 +145,6 @@ class _HomePageState extends State<HomePage> {
               ),
             )
           else
-            // ✅ Show Search options instead
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.35,
               child: SpeedDial(
@@ -172,10 +176,11 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.deepOrangeAccent,
                     ),
                     label: 'Search by Location',
-                    backgroundColor: const Color(0xFF1E1E1E),
+                    backgroundColor: const Color.fromARGB(255, 28, 28, 28),
                     onTap: () {
                       showModalBottomSheet(
                         context: context,
+                        backgroundColor: const Color(0xFF1E1E1E),
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.vertical(
                             top: Radius.circular(20),
@@ -226,15 +231,35 @@ class _HomePageState extends State<HomePage> {
                                             .toList();
 
                                         return DropdownButtonFormField<String>(
-                                          decoration: const InputDecoration(
-                                            labelText: "Country",
+                                          dropdownColor: const Color(
+                                            0xFF2A2A2A,
                                           ),
-                                          initialValue: selectedCountry,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                          decoration: InputDecoration(
+                                            labelText: "Country",
+                                            labelStyle: const TextStyle(
+                                              color: Colors.white70,
+                                            ),
+                                            filled: true,
+                                            fillColor: const Color(0xFF2A2A2A),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                          value: selectedCountry,
                                           items: countries
                                               .map(
                                                 (c) => DropdownMenuItem(
                                                   value: c,
-                                                  child: Text(c),
+                                                  child: Text(
+                                                    c,
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
                                                 ),
                                               )
                                               .toList(),
@@ -281,15 +306,37 @@ class _HomePageState extends State<HomePage> {
                                           return DropdownButtonFormField<
                                             String
                                           >(
-                                            decoration: const InputDecoration(
-                                              labelText: "Province",
+                                            dropdownColor: const Color(
+                                              0xFF2A2A2A,
                                             ),
-                                            initialValue: selectedProvince,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                            decoration: InputDecoration(
+                                              labelText: "Province",
+                                              labelStyle: const TextStyle(
+                                                color: Colors.white70,
+                                              ),
+                                              filled: true,
+                                              fillColor: const Color(
+                                                0xFF2A2A2A,
+                                              ),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                            value: selectedProvince,
                                             items: provinces
                                                 .map(
                                                   (p) => DropdownMenuItem(
                                                     value: p,
-                                                    child: Text(p),
+                                                    child: Text(
+                                                      p,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
                                                   ),
                                                 )
                                                 .toList(),
@@ -339,15 +386,37 @@ class _HomePageState extends State<HomePage> {
                                           return DropdownButtonFormField<
                                             String
                                           >(
-                                            decoration: const InputDecoration(
-                                              labelText: "Townhall",
+                                            dropdownColor: const Color(
+                                              0xFF2A2A2A,
                                             ),
-                                            initialValue: selectedTownhall,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                            decoration: InputDecoration(
+                                              labelText: "Townhall",
+                                              labelStyle: const TextStyle(
+                                                color: Colors.white70,
+                                              ),
+                                              filled: true,
+                                              fillColor: const Color(
+                                                0xFF2A2A2A,
+                                              ),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                            value: selectedTownhall,
                                             items: townhalls
                                                 .map(
                                                   (t) => DropdownMenuItem(
                                                     value: t,
-                                                    child: Text(t),
+                                                    child: Text(
+                                                      t,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
                                                   ),
                                                 )
                                                 .toList(),
@@ -414,7 +483,7 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.blueAccent,
                     ),
                     label: 'Search by Car',
-                    backgroundColor: const Color(0xFF1E1E1E),
+                    backgroundColor: const Color.fromARGB(255, 28, 28, 28),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -438,16 +507,16 @@ class _HomePageState extends State<HomePage> {
               await googleSignIn.signOut();
               await FirebaseAuth.instance.signOut();
               if (!mounted) return;
-              Navigator.of(
+              Navigator.pushAndRemoveUntil(
                 context,
-              ).pushNamedAndRemoveUntil('auth', (route) => false);
+                MaterialPageRoute(builder: (context) => const Auth()),
+                (Route<dynamic> route) => false,
+              );
             },
             icon: const Icon(Iconsax.logout, color: Colors.deepOrangeAccent),
             iconSize: 25,
           ),
           const Spacer(),
-
-          // ✅ Listen to Firestore for current user
           StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('users')
@@ -459,37 +528,29 @@ class _HomePageState extends State<HomePage> {
               }
               final userData = snapshot.data!.data() as Map<String, dynamic>;
               final chatUser = ChatUser.fromJson(userData);
-
               return (chatUser.isFirstTime ?? true)
                   ? const SizedBox()
                   : InkWell(
                       borderRadius: BorderRadius.circular(50),
                       onTap: () async {
-                        // Show loading dialog
                         showDialog(
                           context: context,
                           barrierDismissible: false,
                           builder: (context) {
                             return const Center(
                               child: CircularProgressIndicator(
-                                color: Colors.deepOrangeAccent, // accent color
+                                color: Colors.deepOrangeAccent,
                               ),
                             );
                           },
                         );
-
-                        // Optional: simulate delay or wait for async work
                         await Future.delayed(const Duration(milliseconds: 500));
-
-                        // Navigate to MyProfile
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const MyProfile(),
                           ),
                         );
-
-                        // Close loading dialog after navigation
                         if (mounted) {
                           Navigator.pop(context);
                         }
@@ -499,9 +560,7 @@ class _HomePageState extends State<HomePage> {
                         radius: 23,
                         backgroundImage:
                             (chatUser.img != null && chatUser.img!.isNotEmpty)
-                            ? NetworkImage(
-                                chatUser.img!,
-                              ) // ✅ show Firestore profile picture
+                            ? NetworkImage(chatUser.img!)
                             : const AssetImage('images/user logo.png')
                                   as ImageProvider,
                       ),
@@ -511,7 +570,6 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(width: 12),
         ],
       ),
-
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -525,7 +583,9 @@ class _HomePageState extends State<HomePage> {
             return const Center(child: Text("Something went wrong"));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.deepOrangeAccent),
+            );
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
@@ -535,15 +595,12 @@ class _HomePageState extends State<HomePage> {
               ),
             );
           }
-
-          // ✅ Build users list
           final users = snapshot.data!.docs
               .map(
                 (doc) => ChatUser.fromJson(doc.data() as Map<String, dynamic>),
               )
               .toList();
 
-          // ✅ Remove duplicates safely (skip null ids)
           final Map<String, ChatUser> userMap = {};
           for (var u in users) {
             if (u.id != null) {
@@ -551,283 +608,136 @@ class _HomePageState extends State<HomePage> {
             }
           }
           final uniqueUsers = userMap.values.toList();
-
-          // ✅ Shuffle once
           uniqueUsers.shuffle();
 
-          // ✅ Nearby users also deduplicated
           final nearbyUsers = uniqueUsers.where((user) {
             if (me == null || me!.latitude == null || me!.longitude == null) {
               return false;
             }
             if (user.latitude == null || user.longitude == null) return false;
-
             final dist = calculateDistance(
               me!.latitude!,
               me!.longitude!,
               user.latitude!,
               user.longitude!,
             );
-            return dist < 15; // threshold in km
+            return dist < 15;
           }).toList();
 
-          if (!randomMode && nearbyUsers.isEmpty) {
-            return const Center(child: Text("No nearby agencies within 15 km"));
-          }
+          final displayUsers = randomMode ? uniqueUsers : nearbyUsers;
 
-          return randomMode
-              ? RefreshIndicator(
-                  onRefresh: () async {
-                    setState(() {}); // triggers rebuild
-                  },
-                  child: ListView.builder(
-                    itemCount: uniqueUsers.length,
-                    itemBuilder: (context, index) {
-                      final user = uniqueUsers[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: SizedBox(
-                          height: 130,
-                          child: Card(
-                            color: const Color(
-                              0xFF1E1E1E,
-                            ), // ✅ fond premium anthracite
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            elevation: 4,
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(20),
-                              splashColor:
-                                  Colors.transparent, // ✅ pas d’effet splash
-                              highlightColor: Colors.transparent,
-                              onTap: () async {
-                                // Show loading dialog
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (context) {
-                                    return const Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  },
-                                );
-
-                                // Simulate a small delay or perform async work if needed
-                                await Future.delayed(
-                                  const Duration(seconds: 1),
-                                );
-
-                                // Navigate to PublicProfile
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        PublicProfile(user: user),
-                                  ),
-                                );
-
-                                // Close the loading dialog after navigation
-                                Navigator.pop(context);
-                              },
-
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(20),
-                                      bottomLeft: Radius.circular(20),
-                                    ),
-                                    child:
-                                        user.img != null && user.img!.isNotEmpty
-                                        ? Image.network(
-                                            user.img!,
-                                            height: double.infinity,
-                                            width: 120,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : Image.asset(
-                                            'images/user logo.png',
-                                            height: double.infinity,
-                                            width: 120,
-                                            fit: BoxFit.cover,
-                                          ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            user.agencyname ?? "No agency",
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors
-                                                  .white, // ✅ contraste fort
-                                            ),
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            "${user.province ?? ''} / ${user.townhall ?? ''}",
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              color: Colors
-                                                  .grey, // ✅ texte secondaire
-                                            ),
-                                          ),
-                                          const SizedBox(height: 6),
-                                          StreamBuilder<QuerySnapshot>(
-                                            stream: FirebaseFirestore.instance
-                                                .collection('users')
-                                                .doc(user.id)
-                                                .collection('cars')
-                                                .where(
-                                                  'status',
-                                                  isEqualTo: 'Available',
-                                                )
-                                                .snapshots(),
-                                            builder: (context, snapshot) {
-                                              if (!snapshot.hasData) {
-                                                return const SizedBox();
-                                              }
-                                              final count =
-                                                  snapshot.data!.docs.length;
-                                              return Text(
-                                                count == 0
-                                                    ? "No available vehicles"
-                                                    : "Available Vehicles: $count",
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: Colors
-                                                      .green, // ✅ accent premium
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
+          return ListView.builder(
+            itemCount: displayUsers.length,
+            itemBuilder: (context, index) {
+              final user = displayUsers[index];
+              return Card(
+                color: const Color(0xFF1E1E1E),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 6,
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: user.img != null && user.img!.isNotEmpty
+                            ? Image.network(
+                                user.img!,
+                                width: 70,
+                                height: 70,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                width: 70,
+                                height: 70,
+                                color: Colors.grey.shade800,
+                                child: const Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user.agencyname ?? "No agency",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: nearbyUsers.length,
-                  itemBuilder: (context, index) {
-                    final user = nearbyUsers[index];
-                    final dist = calculateDistance(
-                      me!.latitude!,
-                      me!.longitude!,
-                      user.latitude!,
-                      user.longitude!,
-                    );
+                            const SizedBox(height: 6),
+                            Text(
+                              "${user.country ?? ''} • ${user.province ?? ''} • ${user.townhall ?? ''}",
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
 
-                    return Card(
-                      color: const Color(
-                        0xFF1E1E1E,
-                      ), // ✅ fond anthracite premium
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 4, // ✅ ombre subtile
-                      margin: const EdgeInsets.all(8),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        splashColor: Colors.transparent, // ✅ pas d’effet splash
-                        highlightColor:
-                            Colors.transparent, // ✅ pas d’effet highlight
-                        onTap: () async {
-                          // Show loading dialog
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (context) {
-                              return const Center(
-                                child: CircularProgressIndicator(
-                                  color:
-                                      Colors.deepOrangeAccent, // premium accent
+                            // ✅ Distance display
+                            if (me != null &&
+                                me!.latitude != null &&
+                                me!.longitude != null &&
+                                user.latitude != null &&
+                                user.longitude != null)
+                              Text(
+                                "${calculateDistance(me!.latitude!, me!.longitude!, user.latitude!, user.longitude!).toStringAsFixed(1)} km away",
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.blueAccent,
                                 ),
-                              );
-                            },
-                          );
+                              ),
 
-                          // Optional: simulate delay or wait for async work
-                          await Future.delayed(const Duration(seconds: 1));
-
-                          // Navigate to PublicProfile
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PublicProfile(user: user),
-                            ),
-                          );
-
-                          // Close the loading dialog after navigation
-                          Navigator.pop(context);
-                        },
-
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: user.img != null && user.img!.isNotEmpty
-                                ? Image.network(
-                                    user.img!,
-                                    width: 60,
-                                    height: 60,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Image.asset(
-                                    'images/user logo.png',
-                                    width: 60,
-                                    height: 60,
-                                    fit: BoxFit.cover,
+                            const SizedBox(height: 6),
+                            StreamBuilder<QuerySnapshot>(
+                              stream: FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(user.id)
+                                  .collection('cars')
+                                  .where('status', isEqualTo: 'Available')
+                                  .snapshots(),
+                              builder: (context, carSnapshot) {
+                                if (!carSnapshot.hasData)
+                                  return const SizedBox();
+                                final count = carSnapshot.data!.docs.length;
+                                return Text(
+                                  count == 0
+                                      ? "No available vehicles"
+                                      : "Available Vehicles: $count",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: count == 0
+                                        ? Colors.redAccent
+                                        : Colors.greenAccent,
                                   ),
-                          ),
-                          title: Text(
-                            user.agencyname ?? "No agency",
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white, // ✅ contraste fort
+                                );
+                              },
                             ),
-                          ),
-                          subtitle: Text(
-                            "${user.province ?? ''} / ${user.townhall ?? ''}\n${dist.toStringAsFixed(2)} km away",
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey, // ✅ texte secondaire
-                            ),
-                          ),
-                          trailing: const Icon(
-                            Icons.arrow_forward_ios,
-                            color: Colors.deepOrangeAccent, // ✅ accent premium
-                            size: 18,
-                          ),
+                          ],
                         ),
                       ),
-                    );
-                  },
-                );
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.deepOrangeAccent,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
         },
       ),
     );

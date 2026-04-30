@@ -60,7 +60,24 @@ class _EditVehicleState extends State<EditVehicle> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      backgroundColor: const Color(0xFF121212), // ✅ dark anthracite background
+      appBar: AppBar(
+        backgroundColor: const Color(
+          0xFF121212,
+        ), // ✅ same as scaffold for uniformity
+        elevation: 0, // ✅ flat modern look
+        centerTitle: true,
+        title: const Text(
+          "Edit Vehicle",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white, // ✅ strong contrast
+          ),
+        ),
+        iconTheme: const IconThemeData(
+          color: Colors.deepOrangeAccent, // ✅ accent for back arrow
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -184,24 +201,36 @@ class _EditVehicleState extends State<EditVehicle> {
                     ),
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton(
+                      ElevatedButton.icon(
                         onPressed: () async {
                           // 👇 Capture parent context before opening bottom sheet
                           final parentContext = context;
 
                           showModalBottomSheet(
                             context: context,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20),
+                              ),
+                            ),
+                            backgroundColor: const Color(0xFF1E1E1E),
                             builder: (BuildContext context) {
                               return Wrap(
                                 children: [
                                   // --- Gallery option ---
                                   ListTile(
-                                    leading: const Icon(Icons.photo_library),
-                                    title: const Text('Pick from Gallery'),
+                                    leading: const Icon(
+                                      Icons.photo_library,
+                                      color: Colors.blueAccent,
+                                    ),
+                                    title: const Text(
+                                      'Pick from Gallery',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
                                     onTap: () async {
                                       Navigator.pop(context); // close the sheet
                                       final ImagePicker imagePicker =
@@ -209,12 +238,10 @@ class _EditVehicleState extends State<EditVehicle> {
                                       final List<XFile> images =
                                           await imagePicker.pickMultiImage();
 
-                                      // 👇 If user cancels (no images picked)
                                       if (images.isEmpty) {
                                         if (!mounted) return;
                                         AwesomeDialog(
-                                          context:
-                                              parentContext, // 👈 use parent context
+                                          context: parentContext,
                                           dialogType: DialogType.info,
                                           animType: AnimType.scale,
                                           title: 'No Images Selected',
@@ -228,12 +255,10 @@ class _EditVehicleState extends State<EditVehicle> {
                                           myvehicle?.images?.length ?? 0;
                                       int remainingSlots = 5 - existingCount;
 
-                                      // 👇 If user picked more than allowed slots
                                       if (images.length > remainingSlots) {
                                         if (!mounted) return;
                                         AwesomeDialog(
-                                          context:
-                                              parentContext, // 👈 use parent context
+                                          context: parentContext,
                                           dialogType: DialogType.warning,
                                           animType: AnimType.scale,
                                           title: 'Too Many Images',
@@ -244,7 +269,6 @@ class _EditVehicleState extends State<EditVehicle> {
                                         return;
                                       }
 
-                                      // 👇 Upload selected images
                                       List<String> uploadedUrls = [];
                                       for (var img in images) {
                                         File file = File(img.path);
@@ -280,8 +304,14 @@ class _EditVehicleState extends State<EditVehicle> {
 
                                   // --- Camera option ---
                                   ListTile(
-                                    leading: const Icon(Icons.camera_alt),
-                                    title: const Text('Take Photo'),
+                                    leading: const Icon(
+                                      Icons.camera_alt,
+                                      color: Colors.deepOrangeAccent,
+                                    ),
+                                    title: const Text(
+                                      'Take Photo',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
                                     onTap: () async {
                                       Navigator.pop(context); // close the sheet
                                       final ImagePicker imagePicker =
@@ -294,8 +324,7 @@ class _EditVehicleState extends State<EditVehicle> {
                                       if (image == null) {
                                         if (!mounted) return;
                                         AwesomeDialog(
-                                          context:
-                                              parentContext, // 👈 use parent context
+                                          context: parentContext,
                                           dialogType: DialogType.info,
                                           animType: AnimType.scale,
                                           title: 'No Photo Taken',
@@ -308,12 +337,10 @@ class _EditVehicleState extends State<EditVehicle> {
 
                                       int existingCount =
                                           myvehicle?.images?.length ?? 0;
-
                                       if (existingCount >= 5) {
                                         if (!mounted) return;
                                         AwesomeDialog(
-                                          context:
-                                              parentContext, // 👈 use parent context
+                                          context: parentContext,
                                           dialogType: DialogType.warning,
                                           animType: AnimType.scale,
                                           title: 'Limit Reached',
@@ -355,11 +382,33 @@ class _EditVehicleState extends State<EditVehicle> {
                             },
                           );
                         },
-                        child: const Text('edit Photo'),
+                        icon: const Icon(Icons.edit, color: Colors.white),
+                        label: const Text(
+                          'Edit Photo',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent, // ✅ accent color
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              12,
+                            ), // ✅ modern rounded corners
+                          ),
+                          elevation: 6, // ✅ subtle shadow
+                          minimumSize: const Size(160, 50), // ✅ consistent size
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                        ),
                       ),
 
                       const SizedBox(width: 10),
-                      ElevatedButton(
+                      ElevatedButton.icon(
                         onPressed: () async {
                           final ImagePicker picker = ImagePicker();
                           final List<XFile> images = await picker
@@ -444,39 +493,126 @@ class _EditVehicleState extends State<EditVehicle> {
                                 finalImages; // update local state
                           });
                         },
-                        child: const Text('Add Photos'),
+                        icon: const Icon(
+                          Icons.add_photo_alternate,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Add Photos',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Colors.deepOrangeAccent, // ✅ premium accent
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              12,
+                            ), // ✅ modern rounded corners
+                          ),
+                          elevation: 6, // ✅ subtle shadow for depth
+                          minimumSize: const Size(160, 50), // ✅ consistent size
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
                   TextFormField(
                     readOnly: readonly,
                     validator: (value) => value == null || value.trim().isEmpty
-                        ? "field required !"
+                        ? "Field required!"
                         : null,
                     controller: vehiclefullname,
-                    decoration: const InputDecoration(
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
                       hintText: "Vehicle Full Name",
-                      border: UnderlineInputBorder(),
+                      hintStyle: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      filled: true,
+                      fillColor: const Color(
+                        0xFF1E1E1E,
+                      ), // ✅ dark anthracite background
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          12,
+                        ), // ✅ rounded corners
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color:
+                              Colors.deepOrangeAccent, // ✅ premium accent color
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 12,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.directions_car, // ✅ relevant icon
+                        color: Colors.deepOrangeAccent,
+                      ),
                     ),
                   ),
+
                   const SizedBox(height: 30),
                   TextFormField(
                     readOnly: readonly,
                     validator: (value) => value == null || value.trim().isEmpty
-                        ? "field required !"
+                        ? "Field required!"
                         : null,
                     controller: year,
-                    decoration: const InputDecoration(
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
                       hintText: "Year",
-                      border: UnderlineInputBorder(),
+                      hintStyle: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      filled: true,
+                      fillColor: const Color(
+                        0xFF1E1E1E,
+                      ), // ✅ dark anthracite background
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          12,
+                        ), // ✅ rounded corners
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color:
+                              Colors.deepOrangeAccent, // ✅ premium accent color
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 12,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.calendar_today, // ✅ relevant icon for Year
+                        color: Colors.deepOrangeAccent,
+                      ),
                     ),
                   ),
+
                   const SizedBox(height: 30),
 
                   // --- Transmission dropdown ---
                   DropdownButtonFormField<String>(
-                    initialValue:
+                    value:
                         [
                           "Automatic",
                           "Manual",
@@ -484,15 +620,49 @@ class _EditVehicleState extends State<EditVehicle> {
                         ? myvehicle?.transmission
                         : null,
                     validator: (value) => value == null || value.trim().isEmpty
-                        ? "field required !"
+                        ? "Field required!"
                         : null,
-                    decoration: const InputDecoration(
-                      labelText: "Transmission",
+                    decoration: InputDecoration(
+                      hintText: "Transmission",
+
+                      hintStyle: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFF1E1E1E),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Colors.deepOrangeAccent,
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 14,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.settings,
+                        color: Colors.deepOrangeAccent,
+                      ),
                     ),
+                    dropdownColor: const Color(0xFF1E1E1E),
+                    iconEnabledColor: Colors.deepOrangeAccent,
+                    style: const TextStyle(color: Colors.white),
                     items: ["Automatic", "Manual"].map((transmission) {
                       return DropdownMenuItem<String>(
                         value: transmission,
-                        child: Text(transmission),
+                        child: Text(
+                          transmission,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       );
                     }).toList(),
                     onChanged: readonly
@@ -505,36 +675,87 @@ class _EditVehicleState extends State<EditVehicle> {
                   ),
 
                   const SizedBox(height: 30),
-
                   TextFormField(
                     readOnly: readonly,
                     validator: (value) => value == null || value.trim().isEmpty
-                        ? "field required !"
+                        ? "Field required!"
                         : null,
                     controller: price,
-                    decoration: const InputDecoration(
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
                       hintText: "Price",
-                      border: UnderlineInputBorder(),
+                      hintStyle: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      filled: true,
+                      fillColor: const Color(
+                        0xFF1E1E1E,
+                      ), // ✅ dark anthracite background
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          12,
+                        ), // ✅ rounded corners
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color:
+                              Colors.deepOrangeAccent, // ✅ premium accent color
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 12,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.attach_money, // ✅ relevant icon for Price
+                        color: Colors.deepOrangeAccent,
+                      ),
                     ),
                   ),
+
                   const SizedBox(height: 30),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton(
+                      ElevatedButton.icon(
                         onPressed: () {
                           setState(() {
                             readonly = false;
                           });
                         },
-                        style: ElevatedButton.styleFrom(
-                          maximumSize: const Size(100, 48),
+                        icon: const Icon(Icons.edit, color: Colors.white),
+                        label: const Text(
+                          'EDIT',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
+                          ),
                         ),
-                        child: const Text('EDIT'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Colors.blueAccent, // ✅ accent color for EDIT
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              12,
+                            ), // ✅ modern rounded corners
+                          ),
+                          elevation: 6, // ✅ subtle shadow for depth
+                          minimumSize: const Size(120, 48), // ✅ consistent size
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                        ),
                       ),
+
                       SizedBox(width: MediaQuery.of(context).size.width * 0.2),
-                      ElevatedButton(
+                      ElevatedButton.icon(
                         onPressed: () async {
                           if (formstate.currentState!.validate()) {
                             setState(() {
@@ -584,11 +805,42 @@ class _EditVehicleState extends State<EditVehicle> {
                                 ),
                               );
                             } catch (e) {
-                              print('Error while updating car ======> $e');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: Colors.redAccent,
+                                  content: Text(
+                                    "Error while updating car: $e",
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              );
                             }
                           }
                         },
-                        child: const Text('SAVE'),
+                        icon: const Icon(Icons.check, color: Colors.white),
+                        label: const Text(
+                          'SAVE',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors
+                              .deepOrangeAccent, // ✅ premium accent for SAVE
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              12,
+                            ), // ✅ modern rounded corners
+                          ),
+                          elevation: 6, // ✅ subtle shadow for depth
+                          minimumSize: const Size(120, 48), // ✅ consistent size
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                        ),
                       ),
                     ],
                   ),

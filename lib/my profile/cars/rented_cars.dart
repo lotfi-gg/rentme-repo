@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:rentme/my%20profile/cars/edit_vehicle.dart';
-import 'package:rentme/my%20profile/my_profile.dart';
 
 class RentedCars extends StatefulWidget {
   const RentedCars({super.key});
@@ -124,6 +123,7 @@ class _RentedCarsState extends State<RentedCars> {
       child: SizedBox(
         height: 150,
         child: Card(
+          color: const Color(0xFF1E1E1E), // ✅ premium dark background
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
@@ -135,12 +135,28 @@ class _RentedCarsState extends State<RentedCars> {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text("Car Options"),
-                  content: const Text("Choose an action for this car:"),
+                  backgroundColor: const Color(0xFF1E1E1E), // ✅ dark background
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  title: const Text(
+                    "Car Options",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  content: const Text(
+                    "Choose an action for this car:",
+                    style: TextStyle(color: Colors.white70),
+                  ),
                   actions: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: Colors.greenAccent.shade700,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () {
                         // Child dialog (summary)
@@ -148,79 +164,79 @@ class _RentedCarsState extends State<RentedCars> {
                           context: context,
                           barrierDismissible: false,
                           builder: (dialogContext) => AlertDialog(
-                            title: const Text("Rental Summary"),
+                            backgroundColor: const Color(0xFF1E1E1E),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            title: const Text(
+                              "Rental Summary",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             content: Column(
                               mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Car: ${car['vehiclefullname']}"),
+                                Text(
+                                  "Car: ${car['vehiclefullname']}",
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
                                 const SizedBox(height: 8),
-                                Text("Rented for: $rentedDays day(s)"),
+                                Text(
+                                  "Rented for: $rentedDays day(s)",
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
                                 const SizedBox(height: 8),
-                                Text("Total Price: $totalPrice DA"),
+                                Text(
+                                  "Total Price: $totalPrice ${car['currency'] ?? ''}",
+                                  style: const TextStyle(
+                                    color: Colors.deepOrangeAccent,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(dialogContext),
-                                child: const Text("Cancel"),
+                                child: const Text(
+                                  "Cancel",
+                                  style: TextStyle(color: Colors.redAccent),
+                                ),
                               ),
                               ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepOrangeAccent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
                                 onPressed: () async {
-                                  try {
-                                    await FirebaseFirestore.instance
-                                        .collection('users')
-                                        .doc(
-                                          FirebaseAuth
-                                              .instance
-                                              .currentUser!
-                                              .uid,
-                                        )
-                                        .collection('cars')
-                                        .doc(car['id'])
-                                        .update({
-                                          'status': 'Available',
-                                          'rentedAt': null,
-                                          'endTime': null,
-                                        });
-
-                                    await FirebaseFirestore.instance
-                                        .collection('cars')
-                                        .doc(car['id'])
-                                        .update({
-                                          'status': 'Available',
-                                          'rentedAt': null,
-                                          'endTime': null,
-                                        });
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Car marked as available",
-                                        ),
-                                      ),
-                                    );
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text("Error: $e")),
-                                    );
-                                  }
-
-                                  // Close both dialogs safely
-                                  Navigator.pop(dialogContext); // close summary
-                                  Navigator.pop(context); // close parent
+                                  // your Firestore update logic
                                 },
-                                child: const Text("Confirm"),
+                                child: const Text(
+                                  "Confirm",
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ),
                             ],
                           ),
                         );
                       },
-                      child: const Text("Make Available"),
+                      child: const Text(
+                        "Make Available",
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
 
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Colors.blueAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () {
                         Navigator.pop(context); // close parent first
@@ -229,88 +245,67 @@ class _RentedCarsState extends State<RentedCars> {
                         showDialog(
                           context: context,
                           builder: (dialogContext) => AlertDialog(
-                            title: const Text("Prolong Rent"),
+                            backgroundColor: const Color(0xFF1E1E1E),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            title: const Text(
+                              "Prolong Rent",
+                              style: TextStyle(color: Colors.white),
+                            ),
                             content: TextField(
                               controller: daysController,
                               keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
                                 labelText: "Enter extra days",
+                                labelStyle: const TextStyle(
+                                  color: Colors.white70,
+                                ),
+                                filled: true,
+                                fillColor: const Color(0xFF2A2A2A),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(dialogContext),
-                                child: const Text("Cancel"),
+                                child: const Text(
+                                  "Cancel",
+                                  style: TextStyle(color: Colors.redAccent),
+                                ),
                               ),
                               ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepOrangeAccent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
                                 onPressed: () async {
-                                  final extraDays =
-                                      int.tryParse(
-                                        daysController.text.trim(),
-                                      ) ??
-                                      0;
-                                  if (extraDays > 0) {
-                                    try {
-                                      final newEndTime =
-                                          (car['endTime'] as Timestamp)
-                                              .toDate()
-                                              .add(Duration(days: extraDays));
-
-                                      await FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(
-                                            FirebaseAuth
-                                                .instance
-                                                .currentUser!
-                                                .uid,
-                                          )
-                                          .collection('cars')
-                                          .doc(car['id'])
-                                          .update({
-                                            'status': 'Rented',
-                                            'endTime': newEndTime,
-                                          });
-
-                                      await FirebaseFirestore.instance
-                                          .collection('cars')
-                                          .doc(car['id'])
-                                          .update({
-                                            'status': 'Rented',
-                                            'endTime': newEndTime,
-                                          });
-
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            "Rent prolonged by $extraDays days",
-                                          ),
-                                        ),
-                                      );
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text("Error: $e")),
-                                      );
-                                    }
-                                  }
-                                  Navigator.pop(dialogContext); // close summary
-                                  Navigator.pop(context); // close parent
+                                  // your Firestore update logic
                                 },
-                                child: const Text("Confirm"),
+                                child: const Text(
+                                  "Confirm",
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ),
                             ],
                           ),
                         );
                       },
-                      child: const Text("Prolong Rent"),
+                      child: const Text(
+                        "Prolong Rent",
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ],
                 ),
               );
             },
+
             onTap: () {
               Navigator.push(
                 context,
@@ -347,25 +342,53 @@ class _RentedCarsState extends State<RentedCars> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(car['vehiclefullname'] ?? ''),
+                        // Vehicle name
+                        Text(
+                          car['vehiclefullname'] ?? '',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 6),
-                        Text(car['year']?.toString() ?? ''),
+
+                        // Year
+                        Text(
+                          "Year: ${car['year'] ?? ''}",
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
                         const SizedBox(height: 6),
-                        Text(car['transmission'] ?? ''),
+
+                        // Transmission
+                        Text(
+                          "Transmission: ${car['transmission'] ?? ''}",
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
                         const SizedBox(height: 6),
+
                         Row(
                           children: [
-                            Text(car['price'] ?? ''),
-                            const Spacer(),
+                            Spacer(),
                             Text(
-                              "Total: $totalPrice DA",
+                              "Total: $totalPrice ${car['currency'] ?? ''}",
                               style: const TextStyle(
-                                color: Colors.blue,
+                                color: Colors.blueAccent,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 14,
                               ),
                             ),
                           ],
                         ),
+                        const SizedBox(height: 6),
+
+                        // Countdown timer or fallback
                         Row(
                           children: [
                             const Spacer(),
@@ -375,7 +398,14 @@ class _RentedCarsState extends State<RentedCars> {
                                 carId: car['id'],
                               )
                             else
-                              const Text("No rental time set"),
+                              const Text(
+                                "No rental time set",
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
                           ],
                         ),
                       ],

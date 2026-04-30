@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:rentme/models/user_model.dart'; // ChatUser model
 import 'package:rentme/public%20profile/public_profile.dart';
@@ -12,26 +13,36 @@ class SearchResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
     // Build query dynamically based on filters
-    Query query = FirebaseFirestore.instance.collection('users');
+    Query query = FirebaseFirestore.instance
+        .collection('users')
+        .where(
+          FieldPath.documentId,
+          isNotEqualTo: currentUserId,
+        ); // exclude signed-in user
+
     if (country != null && country!.isNotEmpty) {
-      query = query.where('country', isEqualTo: country);
+      query = query.where('country', isEqualTo: country!.trim().toLowerCase());
     }
     if (province != null && province!.isNotEmpty) {
-      query = query.where('province', isEqualTo: province);
+      query = query.where(
+        'province',
+        isEqualTo: province!.trim().toLowerCase(),
+      );
     }
     if (townhall != null && townhall!.isNotEmpty) {
-      query = query.where('townhall', isEqualTo: townhall);
+      query = query.where(
+        'townhall',
+        isEqualTo: townhall!.trim().toLowerCase(),
+      );
     }
 
     return Scaffold(
-      backgroundColor: const Color(
-        0xFF121212,
-      ), // ✅ premium anthracite background
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        iconTheme: const IconThemeData(
-          color: Colors.deepOrangeAccent, // ✅ custom back arrow color
-        ),
+        iconTheme: const IconThemeData(color: Colors.deepOrangeAccent),
         backgroundColor: const Color(0xFF121212),
         elevation: 0,
         title: const Text(
@@ -68,7 +79,7 @@ class SearchResults extends StatelessWidget {
             itemBuilder: (context, index) {
               final user = users[index];
               return Card(
-                color: const Color(0xFF1E1E1E), // ✅ dark card background
+                color: const Color(0xFF1E1E1E),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -117,7 +128,6 @@ class SearchResults extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      // ✅ Available cars count
                       StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection('users')
@@ -126,9 +136,7 @@ class SearchResults extends StatelessWidget {
                             .where('status', isEqualTo: 'Available')
                             .snapshots(),
                         builder: (context, carSnapshot) {
-                          if (!carSnapshot.hasData) {
-                            return const SizedBox();
-                          }
+                          if (!carSnapshot.hasData) return const SizedBox();
                           final count = carSnapshot.data!.docs.length;
                           return Text(
                             count == 0
@@ -137,7 +145,7 @@ class SearchResults extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: Colors.green, // ✅ premium accent
+                              color: Colors.green,
                             ),
                           );
                         },

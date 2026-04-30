@@ -18,7 +18,7 @@ class _AddVehicleState extends State<AddVehicle> {
   TextEditingController year = TextEditingController();
   TextEditingController transmission = TextEditingController();
   TextEditingController price = TextEditingController();
-  TextEditingController currancy = TextEditingController();
+  TextEditingController currency = TextEditingController();
 
   File? _selectedImage;
 
@@ -245,7 +245,6 @@ class _AddVehicleState extends State<AddVehicle> {
                             fillColor: const Color(0xFF1E1E1E),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Colors.grey),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -283,7 +282,7 @@ class _AddVehicleState extends State<AddVehicle> {
                             ),
                           ],
                           onChanged: (val) {
-                            currancy.text = val ?? '';
+                            currency.text = val ?? '';
                           },
                           validator: (value) => value == null || value.isEmpty
                               ? "Select currency!"
@@ -310,6 +309,19 @@ class _AddVehicleState extends State<AddVehicle> {
                           return;
                         }
                         try {
+                          // ✅ Show loading dialog
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) {
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.deepOrangeAccent,
+                                ),
+                              );
+                            },
+                          );
+
                           final user = FireCar.auth.currentUser!;
                           final carId = FireCar.firebaseFirestore
                               .collection('users')
@@ -331,7 +343,7 @@ class _AddVehicleState extends State<AddVehicle> {
                             transmission.text,
                             price.text,
                             imgUrl,
-                            currancy.text,
+                            currency.text,
                           );
 
                           // Save to global cars collection
@@ -349,8 +361,11 @@ class _AddVehicleState extends State<AddVehicle> {
                                 'status': 'Available',
                                 'rentedAt': null,
                                 'endTime': null,
-                                'currancy': currancy.text,
+                                'currency': currency.text,
                               });
+
+                          // ✅ Close loading dialog safely
+                          if (mounted) Navigator.pop(context);
 
                           Navigator.pushReplacement(
                             context,
@@ -359,6 +374,9 @@ class _AddVehicleState extends State<AddVehicle> {
                             ),
                           );
                         } catch (e) {
+                          if (mounted) {
+                            Navigator.pop(context); // ✅ close loading if error
+                          }
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               backgroundColor: Colors.redAccent,
@@ -371,6 +389,7 @@ class _AddVehicleState extends State<AddVehicle> {
                         }
                       }
                     },
+
                     icon: const Icon(Icons.check, color: Colors.white),
                     label: const Text(
                       'ADD VEHICLE',

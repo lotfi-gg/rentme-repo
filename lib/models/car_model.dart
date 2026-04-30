@@ -10,6 +10,7 @@ class CarInfo {
   String? status;
   String? img;
   List<String>? images;
+  String? currency; // ✅ add currency field
   final DateTime? rentedAt;
   final DateTime? endTime;
 
@@ -23,6 +24,7 @@ class CarInfo {
     required this.img,
     this.status = 'Available',
     this.images,
+    this.currency, // ✅ include in constructor
     this.rentedAt,
     this.endTime,
   });
@@ -38,6 +40,7 @@ class CarInfo {
       img: json['img'],
       status: json['status'],
       images: json['images'] != null ? List<String>.from(json['images']) : [],
+      currency: json['currency'], // ✅ parse from Firestore
       rentedAt: json['rentedAt'] != null
           ? (json['rentedAt'] as Timestamp).toDate()
           : null,
@@ -58,6 +61,7 @@ class CarInfo {
       'img': img,
       'status': status,
       'images': images,
+      'currency': currency, // ✅ save to Firestore
       'rentedAt': rentedAt != null ? Timestamp.fromDate(rentedAt!) : null,
       'endTime': endTime != null ? Timestamp.fromDate(endTime!) : null,
     };
