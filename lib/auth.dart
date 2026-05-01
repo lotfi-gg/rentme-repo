@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,6 +18,41 @@ class _AuthState extends State<Auth> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ Ask for notification permission before login/signup
+    FirebaseMessaging.instance
+        .requestPermission(alert: true, badge: true, sound: true)
+        .then((settings) {
+          if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+            print("✅ Notifications allowed");
+          } else if (settings.authorizationStatus ==
+              AuthorizationStatus.provisional) {
+            print("⚠️ Notifications provisionally allowed");
+          } else {
+            print("❌ Notifications denied");
+          }
+        });
+  }
+
+
+  // ✅ Single getToken function
+  Future<void> getToken() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    String? token = await FirebaseMessaging.instance.getToken();
+
+    String username = user?.displayName ?? user?.email ?? "Unknown User";
+    print("FCM Token for $username : $token");
+
+    if (token != null && user != null) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update(
+        {'fcmToken': token},
+      );
+    }
+  }
 
   void _setLoading(bool value) {
     if (!mounted) return; // ✅ évite l’erreur si le widget est détruit
@@ -172,6 +208,7 @@ class _AuthState extends State<Auth> {
             'longitude': position.longitude,
             'lastLogin': FieldValue.serverTimestamp(),
           });
+      await getToken();
 
       if (mounted) {
         Navigator.of(
@@ -216,6 +253,7 @@ class _AuthState extends State<Auth> {
             'longitude': position.longitude,
             'createdAt': FieldValue.serverTimestamp(),
           });
+      await getToken();
 
       if (mounted) {
         Navigator.of(

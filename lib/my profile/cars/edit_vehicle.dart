@@ -617,7 +617,7 @@ class _EditVehicleState extends State<EditVehicle> {
 
                   // --- Transmission dropdown ---
                   DropdownButtonFormField<String>(
-                    value:
+                    initialValue:
                         [
                           "Automatic",
                           "Manual",

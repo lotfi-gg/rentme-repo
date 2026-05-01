@@ -249,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                                                   BorderRadius.circular(12),
                                             ),
                                           ),
-                                          value: selectedCountry,
+                                          initialValue: selectedCountry,
                                           items: countries
                                               .map(
                                                 (c) => DropdownMenuItem(
@@ -326,7 +326,7 @@ class _HomePageState extends State<HomePage> {
                                                     BorderRadius.circular(12),
                                               ),
                                             ),
-                                            value: selectedProvince,
+                                            initialValue: selectedProvince,
                                             items: provinces
                                                 .map(
                                                   (p) => DropdownMenuItem(
@@ -406,7 +406,7 @@ class _HomePageState extends State<HomePage> {
                                                     BorderRadius.circular(12),
                                               ),
                                             ),
-                                            value: selectedTownhall,
+                                            initialValue: selectedTownhall,
                                             items: townhalls
                                                 .map(
                                                   (t) => DropdownMenuItem(
@@ -707,8 +707,9 @@ class _HomePageState extends State<HomePage> {
                                   .where('status', isEqualTo: 'Available')
                                   .snapshots(),
                               builder: (context, carSnapshot) {
-                                if (!carSnapshot.hasData)
+                                if (!carSnapshot.hasData) {
                                   return const SizedBox();
+                                }
                                 final count = carSnapshot.data!.docs.length;
                                 return Text(
                                   count == 0
