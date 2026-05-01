@@ -74,7 +74,7 @@ class FireCar {
     String vehiclefullname,
     String year,
     String transmission,
-    String price,
+    double price,
     String img,
     String currency, // ✅ spelling fixed
   ) async {

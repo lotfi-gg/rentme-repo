@@ -228,7 +228,7 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                         'status': 'Rented',
                                         'rentedAt': DateTime.now(),
                                         'endTime': DateTime.now().add(
-                                          Duration(days: selectedDays!),
+                                          Duration(seconds: selectedDays!),
                                         ),
                                       });
 
@@ -243,7 +243,7 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                         'status': 'Rented',
                                         'rentedAt': DateTime.now(),
                                         'endTime': DateTime.now().add(
-                                          Duration(days: selectedDays!),
+                                          Duration(seconds: selectedDays!),
                                         ),
                                       });
 

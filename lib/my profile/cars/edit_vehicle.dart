@@ -49,7 +49,12 @@ class _EditVehicleState extends State<EditVehicle> {
               myvehicle = CarInfo.fromJson(doc.data()!);
               vehiclefullname.text = myvehicle!.vehiclefullname ?? '';
               year.text = myvehicle!.year ?? '';
-              price.text = myvehicle!.price ?? '';
+              price.text = myvehicle?.price != null
+                  ? myvehicle!.price!.toStringAsFixed(
+                      0,
+                    ) // shows 30000 instead of 30000.0
+                  : '';
+
               status.text = myvehicle!.status ?? '';
               transmission.text = myvehicle!.transmission ?? '';
             });

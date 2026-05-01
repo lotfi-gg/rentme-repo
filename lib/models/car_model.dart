@@ -6,7 +6,7 @@ class CarInfo {
   String? year;
   String? NameAndYear;
   String? transmission;
-  String? price;
+  double? price;
   String? status;
   String? img;
   List<String>? images;

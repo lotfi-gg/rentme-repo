@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:rentme/my%20profile/cars/edit_vehicle.dart';
+import 'package:rentme/my profile/cars/edit_vehicle.dart';
 
 class RentedCars extends StatefulWidget {
   const RentedCars({super.key});
@@ -20,12 +20,12 @@ class _RentedCarsState extends State<RentedCars> {
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xFF121212), // ✅ dark app bar
+        backgroundColor: const Color(0xFF121212),
         elevation: 0,
         title: SizedBox(
-          width: double.infinity, // ✅ full width search bar
+          width: double.infinity,
           child: Card(
-            color: const Color(0xFF1E1E1E), // ✅ dark anthracite background
+            color: const Color(0xFF1E1E1E),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -70,32 +70,28 @@ class _RentedCarsState extends State<RentedCars> {
                   );
                 }
 
-                final cars = snapshot.data!.docs;
+                final cars = snapshot.data!.docs
+                    .map((doc) => doc.data() as Map<String, dynamic>)
+                    .toList();
+
+                // Sort expired first
+                cars.sort((a, b) {
+                  DateTime? endA = (a['endTime'] as Timestamp?)?.toDate();
+                  DateTime? endB = (b['endTime'] as Timestamp?)?.toDate();
+
+                  bool expiredA = endA != null && endA.isBefore(DateTime.now());
+                  bool expiredB = endB != null && endB.isBefore(DateTime.now());
+
+                  if (expiredA && !expiredB) return -1;
+                  if (!expiredA && expiredB) return 1;
+                  return 0;
+                });
 
                 return ListView.builder(
                   itemCount: cars.length,
                   itemBuilder: (context, index) {
-                    final car = cars[index].data() as Map<String, dynamic>;
-
-                    final nameAndYear =
-                        car['NameAndYear']?.toString().toLowerCase().trim() ??
-                        '';
-                    final vehicleName =
-                        car['vehiclefullname']
-                            ?.toString()
-                            .toLowerCase()
-                            .trim() ??
-                        '';
-                    final year =
-                        car['year']?.toString().toLowerCase().trim() ?? '';
-
-                    if (search.isEmpty ||
-                        nameAndYear.contains(search) ||
-                        vehicleName.contains(search) ||
-                        year.contains(search)) {
-                      return buildCarCard(car);
-                    }
-                    return const SizedBox.shrink();
+                    final car = cars[index];
+                    return buildCarCard(car);
                   },
                 );
               },
@@ -118,12 +114,13 @@ class _RentedCarsState extends State<RentedCars> {
       rentedDays = endTime.difference(rentedAt).inDays;
       totalPrice = rentedDays * pricePerDay;
     }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: SizedBox(
         height: 150,
         child: Card(
-          color: const Color(0xFF1E1E1E), // ✅ premium dark background
+          color: const Color(0xFF1E1E1E),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
@@ -135,7 +132,7 @@ class _RentedCarsState extends State<RentedCars> {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  backgroundColor: const Color(0xFF1E1E1E), // ✅ dark background
+                  backgroundColor: const Color(0xFF1E1E1E),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -151,6 +148,7 @@ class _RentedCarsState extends State<RentedCars> {
                     style: TextStyle(color: Colors.white70),
                   ),
                   actions: [
+                    // Make Available
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.greenAccent.shade700,
@@ -159,7 +157,6 @@ class _RentedCarsState extends State<RentedCars> {
                         ),
                       ),
                       onPressed: () {
-                        // Child dialog (summary)
                         showDialog(
                           context: context,
                           barrierDismissible: false,
@@ -184,17 +181,41 @@ class _RentedCarsState extends State<RentedCars> {
                                   style: const TextStyle(color: Colors.white70),
                                 ),
                                 const SizedBox(height: 8),
-                                Text(
-                                  "Rented for: $rentedDays day(s)",
-                                  style: const TextStyle(color: Colors.white70),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  "Total Price: $totalPrice ${car['currency'] ?? ''}",
-                                  style: const TextStyle(
-                                    color: Colors.deepOrangeAccent,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                Builder(
+                                  builder: (_) {
+                                    DateTime rentedAt =
+                                        (car['rentedAt'] as Timestamp).toDate();
+                                    int elapsedDays = DateTime.now()
+                                        .difference(rentedAt)
+                                        .inDays;
+                                    double dailyPrice =
+                                        double.tryParse(
+                                          car['price'].toString(),
+                                        ) ??
+                                        0;
+                                    double dynamicTotal =
+                                        elapsedDays * dailyPrice;
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Rented for: $elapsedDays day(s)",
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          "Total Price: $dynamicTotal ${car['currency'] ?? ''}",
+                                          style: const TextStyle(
+                                            color: Colors.deepOrangeAccent,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 ),
                               ],
                             ),
@@ -214,7 +235,53 @@ class _RentedCarsState extends State<RentedCars> {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  // your Firestore update logic
+                                  try {
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(
+                                          FirebaseAuth
+                                              .instance
+                                              .currentUser!
+                                              .uid,
+                                        )
+                                        .collection('cars')
+                                        .doc(car['id'])
+                                        .update({
+                                          'status': 'Available',
+                                          'rentedAt': null,
+                                          'endTime': null,
+                                        });
+
+                                    await FirebaseFirestore.instance
+                                        .collection('cars')
+                                        .doc(car['id'])
+                                        .update({
+                                          'status': 'Available',
+                                          'rentedAt': null,
+                                          'endTime': null,
+                                        });
+
+                                    if (!mounted) return;
+                                    Navigator.pop(dialogContext);
+
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Car is now available again.",
+                                        ),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text("Error: $e"),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 },
                                 child: const Text(
                                   "Confirm",
@@ -231,6 +298,7 @@ class _RentedCarsState extends State<RentedCars> {
                       ),
                     ),
 
+                    // Prolong Rent
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueAccent,
@@ -239,7 +307,6 @@ class _RentedCarsState extends State<RentedCars> {
                         ),
                       ),
                       onPressed: () {
-                        Navigator.pop(context); // close parent first
                         final TextEditingController daysController =
                             TextEditingController();
                         showDialog(
@@ -285,7 +352,70 @@ class _RentedCarsState extends State<RentedCars> {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  // your Firestore update logic
+                                  final extraDays = int.tryParse(
+                                    daysController.text,
+                                  );
+                                  if (extraDays == null || extraDays <= 0) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Please enter a valid number of days",
+                                        ),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  try {
+                                    final currentEndTime =
+                                        (car['endTime'] as Timestamp?)
+                                            ?.toDate() ??
+                                        DateTime.now();
+                                    final newEndTime = currentEndTime.add(
+                                      Duration(days: extraDays),
+                                    );
+
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(
+                                          FirebaseAuth
+                                              .instance
+                                              .currentUser!
+                                              .uid,
+                                        )
+                                        .collection('cars')
+                                        .doc(car['id'])
+                                        .update({'endTime': newEndTime});
+
+                                    await FirebaseFirestore.instance
+                                        .collection('cars')
+                                        .doc(car['id'])
+                                        .update({'endTime': newEndTime});
+
+                                    if (!mounted) return;
+                                    Navigator.of(dialogContext).pop();
+
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "Rental prolonged by $extraDays day(s)",
+                                        ),
+                                        backgroundColor:
+                                            Colors.greenAccent.shade700,
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text("Error: $e"),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
+                                    );
+                                  }
                                 },
                                 child: const Text(
                                   "Confirm",
@@ -305,7 +435,6 @@ class _RentedCarsState extends State<RentedCars> {
                 ),
               );
             },
-
             onTap: () {
               Navigator.push(
                 context,
@@ -342,7 +471,6 @@ class _RentedCarsState extends State<RentedCars> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Vehicle name
                         Text(
                           car['vehiclefullname'] ?? '',
                           style: const TextStyle(
@@ -352,30 +480,19 @@ class _RentedCarsState extends State<RentedCars> {
                           ),
                         ),
                         const SizedBox(height: 6),
-
-                        // Year
                         Text(
                           "Year: ${car['year'] ?? ''}",
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14,
-                          ),
+                          style: const TextStyle(color: Colors.grey),
                         ),
                         const SizedBox(height: 6),
-
-                        // Transmission
                         Text(
                           "Transmission: ${car['transmission'] ?? ''}",
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14,
-                          ),
+                          style: const TextStyle(color: Colors.grey),
                         ),
                         const SizedBox(height: 6),
-
                         Row(
                           children: [
-                            Spacer(),
+                            const Spacer(),
                             Text(
                               "Total: $totalPrice ${car['currency'] ?? ''}",
                               style: const TextStyle(
@@ -387,8 +504,6 @@ class _RentedCarsState extends State<RentedCars> {
                           ],
                         ),
                         const SizedBox(height: 6),
-
-                        // Countdown timer or fallback
                         Row(
                           children: [
                             const Spacer(),
@@ -438,43 +553,31 @@ class _CountdownTimerState extends State<CountdownTimer> {
   @override
   void initState() {
     super.initState();
-    remaining = widget.endTime.difference(DateTime.now());
+    _startTimer(widget.endTime);
+  }
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+  @override
+  void didUpdateWidget(covariant CountdownTimer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.endTime != oldWidget.endTime) {
+      _timer?.cancel();
+      _startTimer(widget.endTime);
+    }
+  }
+
+  void _startTimer(DateTime endTime) {
+    remaining = endTime.difference(DateTime.now());
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
       }
       setState(() {
-        remaining = widget.endTime.difference(DateTime.now());
+        remaining = endTime.difference(DateTime.now());
       });
-
       if (remaining.isNegative) {
         timer.cancel();
-
-        try {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .collection('cars')
-              .doc(widget.carId)
-              .update({
-                'status': 'Available',
-                'rentedAt': null,
-                'endTime': null,
-              });
-
-          await FirebaseFirestore.instance
-              .collection('cars')
-              .doc(widget.carId)
-              .update({
-                'status': 'Available',
-                'rentedAt': null,
-                'endTime': null,
-              });
-        } catch (e) {
-          debugPrint("Error updating car availability: $e");
-        }
+        setState(() {}); // rebuild to show "Available"
       }
     });
   }
@@ -487,6 +590,13 @@ class _CountdownTimerState extends State<CountdownTimer> {
 
   @override
   Widget build(BuildContext context) {
+    if (remaining.isNegative) {
+      return const Text(
+        "Available",
+        style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+      );
+    }
+
     final days = remaining.inDays;
     final hours = remaining.inHours % 24;
     final minutes = remaining.inMinutes % 60;

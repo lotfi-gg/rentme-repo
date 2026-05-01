@@ -341,7 +341,7 @@ class _AddVehicleState extends State<AddVehicle> {
                             vehiclefullname.text,
                             year.text,
                             transmission.text,
-                            price.text,
+                            double.tryParse(price.text.trim()) ?? 0,
                             imgUrl,
                             currency.text,
                           );
@@ -356,7 +356,9 @@ class _AddVehicleState extends State<AddVehicle> {
                                 'vehiclefullname': vehiclefullname.text,
                                 'year': year.text,
                                 'transmission': transmission.text,
-                                'price': price.text,
+                                'price':
+                                    double.tryParse(price.text.trim()) ??
+                                    0, // ✅ fixed
                                 'img': imgUrl,
                                 'status': 'Available',
                                 'rentedAt': null,
