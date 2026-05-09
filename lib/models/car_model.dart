@@ -36,7 +36,10 @@ class CarInfo {
       NameAndYear: json['NameAndYear'],
       year: json['year'],
       transmission: json['transmission'],
-      price: json['price'],
+     price: (json['price'] is int)
+          ? (json['price'] as int).toDouble()
+          : (json['price'] as double?),
+
       img: json['img'],
       status: json['status'],
       images: json['images'] != null ? List<String>.from(json['images']) : [],

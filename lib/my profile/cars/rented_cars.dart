@@ -103,15 +103,22 @@ class _RentedCarsState extends State<RentedCars> {
   }
 
   Widget buildCarCard(Map<String, dynamic> car) {
-    final pricePerDay = int.tryParse(car['price'].toString()) ?? 0;
+    final priceValue = car['price'];
+    final pricePerDay = (priceValue is int)
+        ? priceValue
+        : (priceValue is double ? priceValue.toInt() : 0);
+
     final rentedAt = (car['rentedAt'] as Timestamp?)?.toDate();
     final endTime = (car['endTime'] as Timestamp?)?.toDate();
 
     int rentedDays = 0;
     int totalPrice = 0;
 
-    if (rentedAt != null && endTime != null) {
-      rentedDays = endTime.difference(rentedAt).inDays;
+    if (rentedAt != null) {
+      final now = DateTime.now();
+      final effectiveEnd = endTime ?? now;
+      rentedDays = effectiveEnd.difference(rentedAt).inDays;
+      if (rentedDays <= 0) rentedDays = 1; // minimum 1 day
       totalPrice = rentedDays * pricePerDay;
     }
 
@@ -181,20 +188,30 @@ class _RentedCarsState extends State<RentedCars> {
                                   style: const TextStyle(color: Colors.white70),
                                 ),
                                 const SizedBox(height: 8),
-                                Builder(
+                               Builder(
                                   builder: (_) {
-                                    DateTime rentedAt =
-                                        (car['rentedAt'] as Timestamp).toDate();
-                                    int elapsedDays = DateTime.now()
-                                        .difference(rentedAt)
-                                        .inDays;
-                                    double dailyPrice =
-                                        double.tryParse(
-                                          car['price'].toString(),
-                                        ) ??
-                                        0;
-                                    double dynamicTotal =
-                                        elapsedDays * dailyPrice;
+                                    final rentedAt =
+                                        (car['rentedAt'] as Timestamp?)
+                                            ?.toDate();
+                                    final priceValue = car['price'];
+                                    final pricePerDay = (priceValue is int)
+                                        ? priceValue
+                                        : (priceValue is double
+                                              ? priceValue.toInt()
+                                              : 0);
+
+                                    int elapsedDays = 0;
+                                    int dynamicTotal = 0;
+
+                                    if (rentedAt != null) {
+                                      elapsedDays = DateTime.now()
+                                          .difference(rentedAt)
+                                          .inDays;
+                                      if (elapsedDays <= 0)
+                                        elapsedDays = 1; // minimum 1 day
+                                      dynamicTotal = elapsedDays * pricePerDay;
+                                    }
+
                                     return Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -207,7 +224,7 @@ class _RentedCarsState extends State<RentedCars> {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          "Total Price: $dynamicTotal ${car['currency'] ?? ''}",
+                                          "Amount to pay: $dynamicTotal ${car['currency'] ?? ''}",
                                           style: const TextStyle(
                                             color: Colors.deepOrangeAccent,
                                             fontWeight: FontWeight.bold,
@@ -217,6 +234,7 @@ class _RentedCarsState extends State<RentedCars> {
                                     );
                                   },
                                 ),
+
                               ],
                             ),
                             actions: [
@@ -236,6 +254,39 @@ class _RentedCarsState extends State<RentedCars> {
                                 ),
                                 onPressed: () async {
                                   try {
+                                    final rentedAt =
+                                        (car['rentedAt'] as Timestamp?)
+                                            ?.toDate();
+                                    final priceValue = car['price'];
+                                    final pricePerDay = (priceValue is int)
+                                        ? priceValue
+                                        : (priceValue is double
+                                              ? priceValue.toInt()
+                                              : 0);
+
+                                    int elapsedDays = 0;
+                                    int totalPrice = 0;
+
+                                    if (rentedAt != null) {
+                                      elapsedDays = DateTime.now()
+                                          .difference(rentedAt)
+                                          .inDays;
+                                      if (elapsedDays <= 0)
+                                        elapsedDays = 1; // minimum 1 day
+                                      totalPrice = elapsedDays * pricePerDay;
+                                    }
+
+                                    // ✅ Show the calculated total before making available
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "Rental ended early. Total price: $totalPrice ${car['currency'] ?? ''}",
+                                        ),
+                                        backgroundColor: Colors.blueAccent,
+                                      ),
+                                    );
+
+                                    // ✅ Update Firestore to make car available again
                                     await FirebaseFirestore.instance
                                         .collection('users')
                                         .doc(
@@ -283,6 +334,7 @@ class _RentedCarsState extends State<RentedCars> {
                                     );
                                   }
                                 },
+
                                 child: const Text(
                                   "Confirm",
                                   style: TextStyle(color: Colors.white),
@@ -494,7 +546,7 @@ class _RentedCarsState extends State<RentedCars> {
                           children: [
                             const Spacer(),
                             Text(
-                              "Total: $totalPrice ${car['currency'] ?? ''}",
+                              "Total : $totalPrice ${car['currency'] ?? ''}",
                               style: const TextStyle(
                                 color: Colors.blueAccent,
                                 fontWeight: FontWeight.bold,

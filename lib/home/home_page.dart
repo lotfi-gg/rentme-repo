@@ -8,10 +8,10 @@ import 'package:rentme/auth.dart';
 import 'package:rentme/home/create_page.dart';
 import 'package:rentme/models/user_model.dart';
 import 'package:rentme/my profile/my_profile.dart';
-import 'package:rentme/public profile/public_profile.dart';
 import 'dart:math' show cos, sqrt, asin;
 import 'package:rentme/home/search_by_car.dart';
 import 'package:rentme/home/search_results.dart';
+import 'package:rentme/public%20profile/public_profile.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -630,110 +630,137 @@ class _HomePageState extends State<HomePage> {
             itemCount: displayUsers.length,
             itemBuilder: (context, index) {
               final user = displayUsers[index];
-              return Card(
-                color: const Color(0xFF1E1E1E),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 6,
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: user.img != null && user.img!.isNotEmpty
-                            ? Image.network(
-                                user.img!,
-                                width: 70,
-                                height: 70,
-                                fit: BoxFit.cover,
-                              )
-                            : Container(
-                                width: 70,
-                                height: 70,
-                                color: Colors.grey.shade800,
-                                child: const Icon(
-                                  Icons.person,
+              return InkWell(
+                onTap: () async {
+                  // Show loading overlay
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.deepOrangeAccent,
+                        ),
+                      );
+                    },
+                  );
+
+                  // Navigate to PublicProfile
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PublicProfile(user: user),
+                    ),
+                  );
+
+                  // Close loading overlay
+                  Navigator.pop(context);
+                },
+                child: Card(
+                  color: const Color(0xFF1E1E1E),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 6,
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: user.img != null && user.img!.isNotEmpty
+                              ? Image.network(
+                                  user.img!,
+                                  width: 70,
+                                  height: 70,
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  width: 70,
+                                  height: 70,
+                                  color: Colors.grey.shade800,
+                                  child: const Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.agencyname ?? "No agency",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
                               ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user.agencyname ?? "No agency",
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              "${user.country ?? ''} • ${user.province ?? ''} • ${user.townhall ?? ''}",
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-
-                            // ✅ Distance display
-                            if (me != null &&
-                                me!.latitude != null &&
-                                me!.longitude != null &&
-                                user.latitude != null &&
-                                user.longitude != null)
+                              const SizedBox(height: 6),
                               Text(
-                                "${calculateDistance(me!.latitude!, me!.longitude!, user.latitude!, user.longitude!).toStringAsFixed(1)} km away",
+                                "${user.country ?? ''} • ${user.province ?? ''} • ${user.townhall ?? ''}",
                                 style: const TextStyle(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.blueAccent,
+                                  color: Colors.grey,
                                 ),
                               ),
-
-                            const SizedBox(height: 6),
-                            StreamBuilder<QuerySnapshot>(
-                              stream: FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(user.id)
-                                  .collection('cars')
-                                  .where('status', isEqualTo: 'Available')
-                                  .snapshots(),
-                              builder: (context, carSnapshot) {
-                                if (!carSnapshot.hasData) {
-                                  return const SizedBox();
-                                }
-                                final count = carSnapshot.data!.docs.length;
-                                return Text(
-                                  count == 0
-                                      ? "No available vehicles"
-                                      : "Available Vehicles: $count",
-                                  style: TextStyle(
+                              const SizedBox(height: 6),
+                
+                              // ✅ Distance display
+                              if (me != null &&
+                                  me!.latitude != null &&
+                                  me!.longitude != null &&
+                                  user.latitude != null &&
+                                  user.longitude != null)
+                                Text(
+                                  "${calculateDistance(me!.latitude!, me!.longitude!, user.latitude!, user.longitude!).toStringAsFixed(1)} km away",
+                                  style: const TextStyle(
                                     fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: count == 0
-                                        ? Colors.redAccent
-                                        : Colors.greenAccent,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.blueAccent,
                                   ),
-                                );
-                              },
-                            ),
-                          ],
+                                ),
+                
+                              const SizedBox(height: 6),
+                              StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(user.id)
+                                    .collection('cars')
+                                    .where('status', isEqualTo: 'Available')
+                                    .snapshots(),
+                                builder: (context, carSnapshot) {
+                                  if (!carSnapshot.hasData) {
+                                    return const SizedBox();
+                                  }
+                                  final count = carSnapshot.data!.docs.length;
+                                  return Text(
+                                    count == 0
+                                        ? "No available vehicles"
+                                        : "Available Vehicles: $count",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: count == 0
+                                          ? Colors.redAccent
+                                          : Colors.greenAccent,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.deepOrangeAccent,
-                        size: 18,
-                      ),
-                    ],
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.deepOrangeAccent,
+                          size: 18,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

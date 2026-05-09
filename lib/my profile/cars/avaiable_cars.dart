@@ -220,6 +220,17 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                             onPressed: () async {
                               if (selectedDays != null && selectedDays! > 0) {
                                 try {
+                                  // ✅ Show loading spinner
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => const Center(
+                                      child: CircularProgressIndicator(
+                                        color: Colors.deepOrangeAccent,
+                                      ),
+                                    ),
+                                  );
+
                                   // 🔑 Update car status
                                   await FirebaseFirestore.instance
                                       .collection('cars')
@@ -228,7 +239,9 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                         'status': 'Rented',
                                         'rentedAt': DateTime.now(),
                                         'endTime': DateTime.now().add(
-                                          Duration(seconds: selectedDays!),
+                                          Duration(
+                                            days: selectedDays!,
+                                          ), // keep days here
                                         ),
                                       });
 
@@ -243,9 +256,12 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                         'status': 'Rented',
                                         'rentedAt': DateTime.now(),
                                         'endTime': DateTime.now().add(
-                                          Duration(seconds: selectedDays!),
+                                          Duration(days: selectedDays!),
                                         ),
                                       });
+
+                                  if (mounted)
+                                    Navigator.pop(context); // close spinner
 
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -260,6 +276,10 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                     ),
                                   );
                                 } catch (e) {
+                                  if (mounted)
+                                    Navigator.pop(
+                                      context,
+                                    ); // close spinner if error
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       backgroundColor: Colors.redAccent,
@@ -267,7 +287,7 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                                     ),
                                   );
                                 }
-                                Navigator.pop(context);
+                                Navigator.pop(context); // close Rent Car dialog
                               }
                             },
                             child: const Text(
