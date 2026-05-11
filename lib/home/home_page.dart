@@ -24,6 +24,18 @@ class _HomePageState extends State<HomePage> {
   bool hasCreated = false;
   ChatUser? me;
   bool isLoading = true;
+  bool _isNavigating = false;
+
+Future<void> _safeNavigate(Future<void> Function() action) async {
+    if (_isNavigating) return; // 🚫 block if already navigating
+    _isNavigating = true;
+    try {
+      await action(); // ✅ run the navigation
+    } finally {
+      _isNavigating = false; // 🔓 unlock when finished
+    }
+  }
+
 
   @override
   void initState() {
@@ -502,20 +514,51 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: const Color(0xFF121212),
         actions: [
           IconButton(
-            onPressed: () async {
-              GoogleSignIn googleSignIn = GoogleSignIn();
-              await googleSignIn.signOut();
-              await FirebaseAuth.instance.signOut();
-              if (!mounted) return;
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const Auth()),
-                (Route<dynamic> route) => false,
-              );
-            },
+            onPressed: _isNavigating
+                ? null
+                : () {
+                    _safeNavigate(() async {
+                      // Close any existing dialog first
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      }
+
+                      // Show loading dialog
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.deepOrangeAccent,
+                          ),
+                        ),
+                      );
+
+                      // Sign out from Google and Firebase
+                      final googleSignIn = GoogleSignIn();
+                      await googleSignIn.signOut();
+                      await FirebaseAuth.instance.signOut();
+
+                      if (!mounted) return;
+
+                      // Clear the stack and go to Auth
+                      await Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const Auth()),
+                        (Route<dynamic> route) => false,
+                      );
+
+                      // Close loading dialog if still open
+                      if (mounted && Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      }
+                    });
+                  },
             icon: const Icon(Iconsax.logout, color: Colors.deepOrangeAccent),
             iconSize: 25,
           ),
+
+
           const Spacer(),
           StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance

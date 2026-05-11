@@ -20,6 +20,7 @@ class EditVehicle extends StatefulWidget {
 
 class _EditVehicleState extends State<EditVehicle> {
   final String _img = '';
+  int currentIndex = 0; // 👈 this is the one we use everywhere
   GlobalKey<FormState> formstate = GlobalKey<FormState>();
 
   TextEditingController vehiclefullname = TextEditingController();
@@ -99,60 +100,68 @@ class _EditVehicleState extends State<EditVehicle> {
                           context: context,
                           dialogType: DialogType.noHeader,
                           animType: AnimType.scale,
-                          body: SizedBox(
-                            height: 300,
-                            child:
-                                (myvehicle?.images == null ||
-                                    myvehicle!.images!.isEmpty)
-                                // 👇 Show message if no images
-                                ? Center(
-                                    child: Text(
-                                      'No images available.\nClick "Add Photos" to upload some.',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  )
-                                // 👇 Otherwise show the PageView with delete option
-                                : StatefulBuilder(
-                                    builder: (context, setStateDialog) {
-                                      final PageController controller =
-                                          PageController();
-                                      return Stack(
+                          body: StatefulBuilder(
+                            builder: (context, setStateDialog) {
+                              final PageController controller =
+                                  PageController();
+
+                              return SizedBox(
+                                height: 320,
+                                child: Column(
+                                  children: [
+                                    Expanded(
+                                      child: Stack(
                                         children: [
+                                          // ✅ Swipeable image viewer
                                           PageView.builder(
                                             controller: controller,
-                                            scrollDirection: Axis.horizontal,
                                             itemCount:
                                                 myvehicle!.images!.length,
+                                            onPageChanged: (index) {
+                                              setStateDialog(() {
+                                                currentIndex =
+                                                    index; // update class-level field
+                                              });
+                                            },
                                             itemBuilder: (context, index) {
                                               return Padding(
                                                 padding: const EdgeInsets.all(
                                                   8.0,
                                                 ),
-                                                child: Image.network(
-                                                  myvehicle!.images![index],
-                                                  fit: BoxFit.contain,
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  child: InteractiveViewer(
+                                                    panEnabled: true,
+                                                    minScale: 0.8,
+                                                    maxScale: 4.0,
+                                                    child: Image.network(
+                                                      myvehicle!.images![index],
+                                                      fit: BoxFit.contain,
+                                                    ),
+                                                  ),
                                                 ),
                                               );
                                             },
                                           ),
+
+                                          // ✅ Delete button
                                           Positioned(
-                                            top: 8,
-                                            left: 8,
-                                            child: IconButton(
-                                              icon: Icon(
+                                            top: 12,
+                                            right: 12,
+                                            child: FloatingActionButton(
+                                              mini: true,
+                                              backgroundColor: Colors.redAccent,
+                                              child: const Icon(
                                                 Icons.delete,
-                                                color: Colors.red,
+                                                color: Colors.white,
                                               ),
                                               onPressed: () async {
-                                                int currentIndex =
+                                                final idx =
                                                     controller.page?.round() ??
                                                     0;
-                                                String imageUrl = myvehicle!
-                                                    .images![currentIndex];
+                                                final imageUrl =
+                                                    myvehicle!.images![idx];
 
                                                 await FirebaseFirestore.instance
                                                     .collection('users')
@@ -173,20 +182,68 @@ class _EditVehicleState extends State<EditVehicle> {
 
                                                 setStateDialog(() {
                                                   myvehicle!.images!.removeAt(
-                                                    currentIndex,
+                                                    idx,
                                                   );
+
+                                                  if (myvehicle!
+                                                      .images!
+                                                      .isEmpty) {
+                                                    currentIndex = 0;
+                                                  } else if (currentIndex >=
+                                                      myvehicle!
+                                                          .images!
+                                                          .length) {
+                                                    currentIndex =
+                                                        myvehicle!
+                                                            .images!
+                                                            .length -
+                                                        1;
+                                                  }
                                                 });
                                               },
                                             ),
                                           ),
                                         ],
-                                      );
-                                    },
-                                  ),
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 8),
+
+                                    // ✅ Animated dots indicator
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: List.generate(
+                                        myvehicle!.images!.length,
+                                        (index) => AnimatedContainer(
+                                          duration: const Duration(
+                                            milliseconds: 300,
+                                          ),
+                                          margin: const EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                          ),
+                                          width: currentIndex == index ? 12 : 8,
+                                          height: currentIndex == index
+                                              ? 12
+                                              : 8,
+                                          decoration: BoxDecoration(
+                                            color: currentIndex == index
+                                                ? Colors.deepOrangeAccent
+                                                : Colors.grey,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
-                          btnOkOnPress: () {}, // optional close button
+                          btnOkOnPress: () {},
                         ).show();
                       },
+
                       child: Container(
                         height: 300,
                         decoration: BoxDecoration(

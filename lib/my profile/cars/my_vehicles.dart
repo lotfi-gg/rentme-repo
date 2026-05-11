@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:rentme/my%20profile/cars/avaiable_cars.dart';
 import 'package:rentme/my%20profile/cars/rented_cars.dart';
+import 'package:rentme/my%20profile/my_profile.dart';
 
 class MyVehicles extends StatefulWidget {
   const MyVehicles({super.key});
@@ -27,6 +28,33 @@ class _MyVehiclesState extends State<MyVehicles> {
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.orange),
+          onPressed: () async {
+            // Show loading dialog
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.deepOrangeAccent,
+                ),
+              ),
+            );
+
+            // Optional: simulate a small delay so spinner is visible
+            await Future.delayed(const Duration(milliseconds: 300));
+
+            // Navigate back to MyProfile
+            await Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const MyProfile()),
+            );
+
+            // Close loading dialog after navigation
+            if (mounted) Navigator.pop(context);
+          },
+        ),
       ),
 
       body: PageView(

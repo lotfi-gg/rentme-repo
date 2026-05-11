@@ -43,6 +43,18 @@ class _MyProfileState extends State<MyProfile> {
   ChatUser? me;
   bool readonly = true;
 
+  bool _isNavigating = false;
+
+  Future<void> _safeNavigate(Future<void> Function() action) async {
+    if (_isNavigating) return; // 🚫 block if already navigating
+    _isNavigating = true;
+    try {
+      await action(); // ✅ run the navigation
+    } finally {
+      _isNavigating = false; // 🔓 unlock when finished
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -165,39 +177,43 @@ class _MyProfileState extends State<MyProfile> {
         backgroundColor: const Color(0xFF121212),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.orange),
-          onPressed: () async {
-            // Show loading dialog
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.deepOrangeAccent, // premium accent
-                  ),
-                );
-              },
-            );
+          onPressed: _isNavigating
+              ? null
+              : () {
+                  _safeNavigate(() async {
+                    // Close any existing dialog first
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
 
-            // Optional: simulate a small delay or wait for async work
-            await Future.delayed(const Duration(milliseconds: 200));
+                    // Show loading dialog
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) => const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.deepOrangeAccent,
+                        ),
+                      ),
+                    );
 
-            // Navigate back to HomePage
-            await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            ).then((result) {
-              if (result == true) {
-                _reloadUser(); // refresh Firestore data
-              }
-            });
+                    // Optional: simulate a small delay
+                    await Future.delayed(const Duration(milliseconds: 200));
 
-            // Close loading dialog after navigation
-            if (mounted) {
-              Navigator.pop(context);
-            }
-          },
+                    // Navigate to HomePage
+                    await Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HomePage()),
+                    );
+
+                    // Close loading dialog if still open
+                    if (mounted && Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
+                  });
+                },
         ),
+
       ),
 
       body: SingleChildScrollView(
@@ -314,16 +330,31 @@ class _MyProfileState extends State<MyProfile> {
                 ),
                 SizedBox(height: 20),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => MyVehicles()),
+                  onPressed: () async {
+                    // Show loading dialog
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) => const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.deepOrangeAccent, // premium accent
+                        ),
+                      ),
                     );
+
+                    // Optional: simulate a small delay or wait for async work
+                    await Future.delayed(const Duration(milliseconds: 300));
+
+                    // Navigate to MyVehicles
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MyVehicles()),
+                    );
+
+                    // Close loading dialog after navigation
+                    if (mounted) Navigator.pop(context);
                   },
-                  icon: const Icon(
-                    Iconsax.car,
-                    color: Colors.white,
-                  ), // modern car icon
+                  icon: const Icon(Iconsax.car, color: Colors.white),
                   label: const Text(
                     'MY VEHICLES',
                     style: TextStyle(
@@ -332,17 +363,13 @@ class _MyProfileState extends State<MyProfile> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Colors.deepPurpleAccent, // premium accent color
+                    backgroundColor: Colors.deepPurpleAccent,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 4,
-                    minimumSize: const Size(
-                      180,
-                      50,
-                    ), // slightly larger for importance
+                    minimumSize: const Size(180, 50),
                     padding: const EdgeInsets.symmetric(
                       vertical: 14,
                       horizontal: 12,

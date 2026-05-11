@@ -72,7 +72,10 @@ class _PublicProfileState extends State<PublicProfile> {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.grey[300], // ✅ cancel button style
               ),
-              onPressed: () => Navigator.pop(context),
+onPressed: () async {
+  if (!mounted) return;
+  Navigator.pop(context); // safe navigation
+},
               child: const Text("Cancel"),
             ),
             ElevatedButton(
@@ -177,6 +180,16 @@ class _PublicProfileState extends State<PublicProfile> {
     return Scaffold(
       backgroundColor: Color(0xFF121212),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.orange),
+          onPressed: () {
+            if (!mounted) return;
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context); // ✅ safe back navigation
+            }
+          },
+        ),
+
         backgroundColor: const Color(0xFF121212),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.deepOrangeAccent),
