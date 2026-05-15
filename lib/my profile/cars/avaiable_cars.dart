@@ -308,65 +308,69 @@ class _AvaiableCarsState extends State<AvaiableCars> {
                     ),
                   );
                 },
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.horizontal(
-                          left: Radius.circular(20),
-                        ),
-                        child: car['img'] != null && car['img'] != ''
-                            ? Image.network(
-                                car['img'],
-                                height: 120,
-                                width: 120,
-                                fit: BoxFit.cover,
-                              )
-                            : Image.asset(
-                                'images/car.png',
-                                height: 120,
-                                width: 120,
-                                fit: BoxFit.cover,
-                              ),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.horizontal(
+                        left: Radius.circular(20),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              car['vehiclefullname'] ?? '',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                      child: car['img'] != null && car['img'] != ''
+                          ? Image.network(
+                              car['img'],
+                              height: double.infinity,
+                              width: 130,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.asset(
+                              'images/car.png',
+                              height: double.infinity,
+                              width: 130,
+                              fit: BoxFit.cover,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              "Year: ${car['year']?.toString() ?? ''}",
-                              style: const TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      // ✅ ensures text stays inside available space
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            car['vehiclefullname'] ?? '',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              "Transmission: ${car['transmission'] ?? ''}",
-                              style: const TextStyle(color: Colors.grey),
+                            overflow:
+                                TextOverflow.ellipsis, // ✅ prevents overflow
+                            maxLines: 1,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "Year: ${car['year']?.toString() ?? ''}",
+                            style: const TextStyle(color: Colors.grey),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "Transmission: ${car['transmission'] ?? ''}",
+                            style: const TextStyle(color: Colors.grey),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "Price: ${car['price'] ?? ''} ${car['currency'] ?? ''}",
+                            style: const TextStyle(
+                              color: Colors.deepOrangeAccent,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              "Price: ${car['price'] ?? ''} ${car['currency'] ?? ''}",
-                              style: const TextStyle(
-                                color: Colors.deepOrangeAccent,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),

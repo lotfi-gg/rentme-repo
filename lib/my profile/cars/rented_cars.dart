@@ -188,7 +188,7 @@ class _RentedCarsState extends State<RentedCars> {
                                   style: const TextStyle(color: Colors.white70),
                                 ),
                                 const SizedBox(height: 8),
-                               Builder(
+                                Builder(
                                   builder: (_) {
                                     final rentedAt =
                                         (car['rentedAt'] as Timestamp?)
@@ -234,7 +234,6 @@ class _RentedCarsState extends State<RentedCars> {
                                     );
                                   },
                                 ),
-
                               ],
                             ),
                             actions: [
@@ -495,30 +494,30 @@ class _RentedCarsState extends State<RentedCars> {
                 ),
               );
             },
-            child: Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.horizontal(
-                      left: Radius.circular(25),
-                    ),
-                    child: car['img'] != null && car['img'] != ''
-                        ? Image.network(
-                            car['img'],
-                            height: double.infinity,
-                            width: 200,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.asset(
-                            'images/car.png',
-                            height: double.infinity,
-                            width: 200,
-                            fit: BoxFit.cover,
-                          ),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(20),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
+                  child: car['img'] != null && car['img'] != ''
+                      ? Image.network(
+                          car['img'],
+                          height: double.infinity,
+                          width: 150,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.asset(
+                          'images/car.png',
+                          height: double.infinity,
+                          width: 150,
+                          fit: BoxFit.cover,
+                        ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 15),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -542,18 +541,13 @@ class _RentedCarsState extends State<RentedCars> {
                           style: const TextStyle(color: Colors.grey),
                         ),
                         const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            const Spacer(),
-                            Text(
-                              "Total : $totalPrice ${car['currency'] ?? ''}",
-                              style: const TextStyle(
-                                color: Colors.blueAccent,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          "Total : $totalPrice ${car['currency'] ?? ''}",
+                          style: const TextStyle(
+                            color: Colors.blueAccent,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
                         const SizedBox(height: 6),
                         Row(
@@ -578,8 +572,8 @@ class _RentedCarsState extends State<RentedCars> {
                       ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

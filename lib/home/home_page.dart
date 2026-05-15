@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   bool isLoading = true;
   bool _isNavigating = false;
 
-Future<void> _safeNavigate(Future<void> Function() action) async {
+  Future<void> _safeNavigate(Future<void> Function() action) async {
     if (_isNavigating) return; // 🚫 block if already navigating
     _isNavigating = true;
     try {
@@ -35,7 +35,6 @@ Future<void> _safeNavigate(Future<void> Function() action) async {
       _isNavigating = false; // 🔓 unlock when finished
     }
   }
-
 
   @override
   void initState() {
@@ -558,7 +557,6 @@ Future<void> _safeNavigate(Future<void> Function() action) async {
             iconSize: 25,
           ),
 
-
           const Spacer(),
           StreamBuilder<DocumentSnapshot>(
             stream: FirebaseFirestore.instance
@@ -631,13 +629,20 @@ Future<void> _safeNavigate(Future<void> Function() action) async {
             );
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
-                "No users found",
-                style: TextStyle(color: Colors.white),
+                randomMode ? "No random users" : "No nearby users",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             );
           }
+
+          
+
           final users = snapshot.data!.docs
               .map(
                 (doc) => ChatUser.fromJson(doc.data() as Map<String, dynamic>),
@@ -705,7 +710,10 @@ Future<void> _safeNavigate(Future<void> Function() action) async {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 6,
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(
@@ -751,7 +759,7 @@ Future<void> _safeNavigate(Future<void> Function() action) async {
                                 ),
                               ),
                               const SizedBox(height: 6),
-                
+
                               // ✅ Distance display
                               if (me != null &&
                                   me!.latitude != null &&
@@ -766,7 +774,7 @@ Future<void> _safeNavigate(Future<void> Function() action) async {
                                     color: Colors.blueAccent,
                                   ),
                                 ),
-                
+
                               const SizedBox(height: 6),
                               StreamBuilder<QuerySnapshot>(
                                 stream: FirebaseFirestore.instance

@@ -38,7 +38,6 @@ class _AuthState extends State<Auth> {
         });
   }
 
-
   // ✅ Single getToken function
   Future<void> getToken() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -502,14 +501,18 @@ class _AuthState extends State<Auth> {
                               fit: BoxFit.contain,
                             ),
                             const SizedBox(width: 12),
-                            const Text(
-                              'LOGIN WITH GOOGLE',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors
-                                    .black, // ✅ texte noir pour contraste sur fond blanc
-                                letterSpacing: 1.2,
+                            Flexible(
+                              child: const Text(
+                                'LOGIN WITH GOOGLE',
+                                style: TextStyle(
+                                  overflow: TextOverflow
+                                      .ellipsis, // optional safeguard
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors
+                                      .black, // ✅ texte noir pour contraste sur fond blanc
+                                  letterSpacing: 1.2,
+                                ),
                               ),
                             ),
                           ],
