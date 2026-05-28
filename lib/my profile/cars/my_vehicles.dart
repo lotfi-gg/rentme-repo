@@ -29,32 +29,32 @@ class _MyVehiclesState extends State<MyVehicles> {
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.orange),
-          onPressed: () async {
-            // Show loading dialog
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (_) => const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.deepOrangeAccent,
-                ),
-              ),
-            );
-
-            // Optional: simulate a small delay so spinner is visible
-            await Future.delayed(const Duration(milliseconds: 300));
-
-            // Navigate back to MyProfile
-            await Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const MyProfile()),
-            );
-
-            // Close loading dialog after navigation
-            if (mounted) Navigator.pop(context);
-          },
+  icon: const Icon(Icons.arrow_back, color: Colors.orange),
+  onPressed: () async {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(
+          color: Colors.deepOrangeAccent,
         ),
+      ),
+    );
+
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    // Close the loading dialog
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+
+    // Pop MyVehicles → return to MyProfile
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+  },
+),
       ),
 
       body: PageView(
@@ -70,7 +70,7 @@ class _MyVehiclesState extends State<MyVehicles> {
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
           backgroundColor: const Color(0xFF1E1E1E), // ✅ dark bar
-          indicatorColor: Colors.deepOrangeAccent.withOpacity(0.25),
+          indicatorColor: Colors.deepOrangeAccent.withValues(alpha: 0.25),
           labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
             if (states.contains(WidgetState.selected)) {
               return const TextStyle(

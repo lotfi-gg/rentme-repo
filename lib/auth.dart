@@ -526,7 +526,7 @@ class _AuthState extends State<Auth> {
           ),
           if (isLoading)
             Container(
-              color: Colors.black.withOpacity(0.6), // fond semi-transparent
+              color: Colors.black.withValues(alpha: 0.6), // fond semi-transparent
               child: const Center(
                 child: CircularProgressIndicator(
                   color: Colors.deepOrangeAccent,

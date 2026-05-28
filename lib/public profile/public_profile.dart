@@ -223,7 +223,7 @@ onPressed: () async {
           NavigationBarTheme(
             data: NavigationBarThemeData(
               backgroundColor: const Color(0xFF1E1E1E),
-              indicatorColor: Colors.deepOrangeAccent.withOpacity(0.25),
+              indicatorColor: Colors.deepOrangeAccent.withValues(alpha: 0.25),
               labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((
                 states,
               ) {

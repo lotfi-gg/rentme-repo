@@ -1016,7 +1016,7 @@ class _EditVehicleState extends State<EditVehicle> {
           ),
           if (isLoading)
             Container(
-              color: Colors.black.withOpacity(0.6),
+              color: Colors.black.withValues(alpha: 0.6),
               child: const Center(
                 child: CircularProgressIndicator(
                   color: Colors.deepOrangeAccent,

@@ -176,43 +176,31 @@ class _MyProfileState extends State<MyProfile> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF121212),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.orange),
-          onPressed: _isNavigating
-              ? null
-              : () {
-                  _safeNavigate(() async {
-                    // Close any existing dialog first
-                    if (Navigator.canPop(context)) {
-                      Navigator.pop(context);
-                    }
-
-                    // Show loading dialog
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (_) => const Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.deepOrangeAccent,
-                        ),
-                      ),
-                    );
-
-                    // Optional: simulate a small delay
-                    await Future.delayed(const Duration(milliseconds: 200));
-
-                    // Navigate to HomePage
-                    await Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HomePage()),
-                    );
-
-                    // Close loading dialog if still open
-                    if (mounted && Navigator.canPop(context)) {
-                      Navigator.pop(context);
-                    }
-                  });
-                },
+  icon: const Icon(Icons.arrow_back, color: Colors.orange),
+  onPressed: () {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(
+          color: Colors.deepOrangeAccent,
         ),
+      ),
+    );
+
+    // Navigate to HomePage
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomePage()),
+    ).then((_) {
+      // Close the loading dialog once HomePage is mounted
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+    });
+  },
+),
 
       ),
 
